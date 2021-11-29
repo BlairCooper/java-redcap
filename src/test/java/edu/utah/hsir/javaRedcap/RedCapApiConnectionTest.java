@@ -207,7 +207,6 @@ public class RedCapApiConnectionTest
     public void testSetCaCertificateFile() throws JavaRedcapException
     {
 		assertNull("Initial caCertificate state unexpected", testConnection.getCaCertificateFile());
-        
 		
         testConnection.setCaCertificateFile(testCACertificateFile.getAbsolutePath());
 
@@ -309,7 +308,9 @@ public class RedCapApiConnectionTest
 			testConnection.setCaCertificateFile(testCACertificateFile.getAbsolutePath());
 		});
 
-		MatcherAssert.assertThat(exception.getMessage(), CoreMatchers.containsString("non exist"));
+		MatcherAssert.assertThat(exception.getMessage(), CoreMatchers.containsString("exists"));
+		MatcherAssert.assertThat(exception.getMessage(), CoreMatchers.containsString("cannot"));
+		MatcherAssert.assertThat(exception.getMessage(), CoreMatchers.containsString("read"));
 		assertEquals(ErrorHandlerInterface.CA_CERTIFICATE_FILE_UNREADABLE, exception.getCode());
     }
 
