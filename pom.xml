@@ -1,0 +1,72 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>edu.utah.hsir</groupId>
+  <artifactId>redcapJava</artifactId>
+  <packaging>jar</packaging>
+  <version>1.0.0-SNAPSHOT</version>
+  <name>redcapJava</name>
+  <url>https://uofuhealth.utah.edu/hsir/</url>
+  
+  <properties>
+    <!-- https://maven.apache.org/general.html#encoding-warning -->
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.scm.id>github</project.scm.id>
+
+    <java.version>11</java.version>
+    <maven.compiler.source>${java.version}</maven.compiler.source>
+    <maven.compiler.target>${java.version}</maven.compiler.target>
+  </properties>
+
+  <repositories>
+    <repository>
+      <id>maven.github.blair</id>
+      <url>https://maven.pkg.github.com/BlairCooper/*</url>
+    </repository>
+  </repositories>
+
+  <distributionManagement>
+    <repository>
+      <id>github</id>
+      <name>GitHub BlairCooper Apache Maven Packages</name>
+      <url>https://maven.pkg.github.com/BlairCooper/${project.artifactId}</url>
+    </repository>
+  </distributionManagement>
+
+  <scm>
+    <developerConnection>scm:git:https://github.com/BlairCooper/${project.artifactId}.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
+
+  <dependencies>
+    <dependency>
+    	<groupId>com.fasterxml.jackson.core</groupId>
+    	<artifactId>jackson-databind</artifactId>
+    	<version>2.13.0</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.13.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+    	<groupId>org.mockito</groupId>
+    	<artifactId>mockito-core</artifactId>
+    	<version>4.0.0</version>
+    	<scope>test</scope>
+    </dependency>
+    <dependency>
+    	<groupId>com.squareup.okhttp3</groupId>
+    	<artifactId>mockwebserver</artifactId>
+    	<version>4.9.2</version>
+    	<scope>test</scope>
+    </dependency>
+    <dependency>
+    	<groupId>org.hamcrest</groupId>
+    	<artifactId>hamcrest-core</artifactId>
+    	<version>2.2</version>
+    	<scope>test</scope>
+    </dependency>
+  </dependencies>
+</project>
