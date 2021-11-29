@@ -5,7 +5,7 @@
   <artifactId>java-redcap</artifactId>
   <packaging>jar</packaging>
   <version>1.0.0-SNAPSHOT</version>
-  <name>javaRedcap</name>
+  <name>java-redcap</name>
   <url>https://uofuhealth.utah.edu/hsir/</url>
   
   <properties>
