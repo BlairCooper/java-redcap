@@ -34,12 +34,11 @@
     </repository>
   </distributionManagement>
 
-<!-- 
   <scm>
     <developerConnection>scm:git:https://github.com/BlairCooper/${project.artifactId}.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
- -->
+
   <dependencies>
     <dependency>
     	<groupId>com.fasterxml.jackson.core</groupId>
