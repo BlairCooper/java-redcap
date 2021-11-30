@@ -18,13 +18,14 @@
     <maven.compiler.target>${java.version}</maven.compiler.target>
   </properties>
 
+<!-- 
   <repositories>
     <repository>
       <id>maven.github.blair</id>
       <url>https://maven.pkg.github.com/BlairCooper/*</url>
     </repository>
   </repositories>
-
+ -->
   <distributionManagement>
     <repository>
       <id>github</id>
@@ -33,11 +34,12 @@
     </repository>
   </distributionManagement>
 
+<!-- 
   <scm>
     <developerConnection>scm:git:https://github.com/BlairCooper/${project.artifactId}.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
-
+ -->
   <dependencies>
     <dependency>
     	<groupId>com.fasterxml.jackson.core</groupId>
