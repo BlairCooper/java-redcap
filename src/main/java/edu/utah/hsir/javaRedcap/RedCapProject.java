@@ -40,7 +40,7 @@ import edu.utah.hsir.javaRedcap.enums.RedCapApiType;
 /**
  * REDCap project class used to retrieve data from, and modify, REDCap projects.
  */
-class RedCapProject
+public class RedCapProject
 {
 	public static final String JSON_RESULT_ERROR_PATTERN = "^[\\s]*\\{\\\"error\\\":[\\s]*\\\"(.*)\\\"\\}[\\s]*$";
 

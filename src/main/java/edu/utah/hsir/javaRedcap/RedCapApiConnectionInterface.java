@@ -15,7 +15,7 @@ import java.util.Map;
  * Classes implementing this interface are used to provide low-level
  * access to the REDCap API.
  */
-interface RedCapApiConnectionInterface extends Cloneable
+public interface RedCapApiConnectionInterface extends Cloneable
 {
     /**
      * Constructor that creates a REDCap API connection for the specified URL, with the

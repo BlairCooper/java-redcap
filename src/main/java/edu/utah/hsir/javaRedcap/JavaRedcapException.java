@@ -40,7 +40,7 @@ package edu.utah.hsir.javaRedcap;
  * @see http://php.net/manual/en/class.exception.php
  *         Information on additional methods provided by parent class Exception.
  */
-class JavaRedcapException extends Exception
+public class JavaRedcapException extends Exception
 {
 	private static final long serialVersionUID = 3996085084391681356L;
 

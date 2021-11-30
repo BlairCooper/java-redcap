@@ -23,7 +23,7 @@ import java.util.Map;
  * but could be used directly by a user to access REDCap functionality not provided
  * by PHPCap.
  */
-class RedCapApiConnection implements RedCapApiConnectionInterface
+public class RedCapApiConnection implements RedCapApiConnectionInterface
 {
 	public static final int DEFAULT_TIMEOUT_IN_SECONDS = 1200; // 1,200 seconds = 20 minutes
 	public static final int DEFAULT_CONNECTION_TIMEOUT_IN_SECONDS = 20;
