@@ -17,9 +17,6 @@ jobs:
       contents: read
       packages: write
 
-    outputs:
-      release_version: ${{ steps.get-version.outputs.project_version }}
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v2

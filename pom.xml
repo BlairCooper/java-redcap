@@ -34,8 +34,7 @@
   </distributionManagement>
 
   <scm>
-    <connection>scm:git:git@github.com:BlairCooper/${project.artifactId}</connection>
-    <developerConnection>scm:git:git@github.com:BlairCooper/${project.artifactId}</developerConnection>
+    <developerConnection>scm:git:https://github.com/BlairCooper/${project.artifactId}.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
 
