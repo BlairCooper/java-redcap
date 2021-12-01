@@ -113,6 +113,31 @@ public class REDCapProject
         }
     }
 
+    /**
+     * Creates a REDCapProject object for the specifed project.
+     *
+     * Example Usage:
+     * <pre>
+     * <code class="java">
+     * String apiUrl = 'https://redcap.someplace.edu/api/'; # replace with your API URL
+     * String apiToken = '11111111112222222222333333333344'; # replace with your API token
+     *
+     * REDCapProject project = new REDCapProject(apiUrl, apiToken);
+     * </code>
+     * </pre>
+     *
+     * @param apiUrl the URL for the API for the REDCap site that has the project.
+     * @param apiToken the API token for this project.
+     *
+     * @throws JavaREDCapException if any of the arguments are invalid
+     */
+    public REDCapProject (String apiUrl, String apiToken) throws JavaREDCapException {
+    	setErrorHandler(null);
+
+        this.apiToken = REDCap.processApiTokenArgument(apiToken, 32, this.errorHandler);
+        this.connection = new REDCapApiConnection(apiUrl, false, null);
+    }
+    
 
     /**
      * Exports all the numbers and names of the arms in the project.

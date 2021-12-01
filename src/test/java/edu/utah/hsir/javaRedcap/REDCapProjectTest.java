@@ -64,14 +64,14 @@ public class REDCapProjectTest
     }
     
     @Test
-    public void testCreateProjectWithNoConnection() throws JavaREDCapException {
+    public void testCtor_withNoConnection() throws JavaREDCapException {
     	REDCapProject project = new REDCapProject(apiUrl, apiToken, false, null, null, null);
     	
     	assertNotNull(project.getConnection());
     }
 
     @Test
-    public void testCreateProjectWithNullApiToken()
+    public void testCtor_withNullApiToken()
     {
     	JavaREDCapException exception = assertThrows(JavaREDCapException.class, () -> {
             new REDCapProject(apiUrl, null, false, null, null, null);
@@ -82,7 +82,7 @@ public class REDCapProjectTest
     }
     
     @Test
-    public void testCreateProjectWithBlankApiToken()
+    public void testCtor_withBlankApiToken()
     {
     	JavaREDCapException exception = assertThrows(JavaREDCapException.class, () -> {
             new REDCapProject(apiUrl, " ", false, null, null, null);
@@ -93,7 +93,7 @@ public class REDCapProjectTest
     }
 
     @Test
-    public void testCreateProjectwithApiTokenWithInvalidCharacter()
+    public void testCtor_withApiTokenWithInvalidCharacter()
     {
     	JavaREDCapException exception = assertThrows(JavaREDCapException.class, () -> {
             new REDCapProject(apiUrl, "1234567890123456789012345678901G", false, null, null, null);
@@ -104,7 +104,7 @@ public class REDCapProjectTest
     }
     
     @Test
-    public void testCreateProjectWithApiTokenWithIncorrectLength()
+    public void testCtor_withApiTokenWithIncorrectLength()
     {
     	JavaREDCapException exception = assertThrows(JavaREDCapException.class, () -> {
             new REDCapProject(apiUrl, "1234567890123456789012345678901", false, null, null, null);
@@ -112,6 +112,15 @@ public class REDCapProjectTest
 
     	assertEquals("API token with incorrect length exception code check failed", ErrorHandlerInterface.INVALID_ARGUMENT, exception.getCode());
     	MatcherAssert.assertThat(exception.getMessage(), CoreMatchers.containsStringIgnoringCase("format"));
+    }
+    
+    @Test
+    public void testCtor_withSimpleCtor() throws JavaREDCapException
+    {
+    	REDCapProject project = new REDCapProject(apiUrl, "12345678901234567890123456789012");
+    	
+    	assertNotNull(project.getErrorHandler());
+    	assertNotNull(project.getConnection());
     }
 
     @Test
