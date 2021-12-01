@@ -17,15 +17,20 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Map;
 
+import edu.utah.hsir.javaRedcap.enums.REDCapApiParameter;
+
 /**
- * A connection to the API of a REDCap instance. This class provides a low-level
- * interface to the REDCap API, and is primarily intended for internal use by PHPCap,
- * but could be used directly by a user to access REDCap functionality not provided
- * by PHPCap.
+ * Represents a connection to the API of a REDCap instance. This class
+ * provides a low-level interface to the REDCap API, and is primarily
+ * intended for internal use by JavaRedcap, but could be used directly by a
+ * user to access REDCap functionality not provided by JavaRedcap.
  */
-public class RedCapApiConnection implements RedCapApiConnectionInterface
+public class REDCapApiConnection implements REDCapApiConnectionInterface
 {
+	/** The default timeout for requests */
 	public static final int DEFAULT_TIMEOUT_IN_SECONDS = 1200; // 1,200 seconds = 20 minutes
+	
+	/** The default timeout of connections to  complete */
 	public static final int DEFAULT_CONNECTION_TIMEOUT_IN_SECONDS = 20;
 	
 	private int connectionTimeout = DEFAULT_CONNECTION_TIMEOUT_IN_SECONDS;
@@ -39,20 +44,42 @@ public class RedCapApiConnection implements RedCapApiConnectionInterface
     /** the error handler for the connection. */
     protected ErrorHandlerInterface errorHandler;
 
-    private RedCapApiConnection() {}
+    private REDCapApiConnection() {}
 
-    public RedCapApiConnection (String url, boolean sslVerify, String caCertificateFile)
-        throws JavaRedcapException
+    /**
+     * Construct an object used for communicating with the REDCap server.
+     *  
+     * @param url The REDCap server URL.
+     * @param sslVerify If true, the SSL connection with the server will be
+     * 		verified.
+     * @param caCertificateFile The CA certificate file used to verify the
+     * 		connection with the server.
+     * 
+     * @throws JavaREDCapException Thrown if an error occurs and the Error
+     * 		Handler being used throws the exception.
+     */
+    public REDCapApiConnection (String url, boolean sslVerify, String caCertificateFile)
+        throws JavaREDCapException
     {
     	this(url, sslVerify, caCertificateFile, null);
     }
     
     /**
+     * Construct an object used for communicating with the REDCap server.
+     *  
+     * @param url The REDCap server URL.
+     * @param sslVerify If true, the SSL connection with the server will be
+     * 		verified.
+     * @param caCertificateFile The CA certificate file used to verify the
+     * 		connection with the server.
+     * @param errorHandler An implementation of ErrorHandlerInterface to use
+     * 		in handling errors. If null the default error handler will be used.
      *
-     * @throws JavaRedcapException if an error occurs and the default error handler is being used.
+     * @throws JavaREDCapException Thrown if an error occurs and the Error
+     * 		Handler being used throws the exception.
      */
-    public RedCapApiConnection (String url, boolean sslVerify, String caCertificateFile, ErrorHandlerInterface errorHandler)
-    	throws JavaRedcapException
+    public REDCapApiConnection (String url, boolean sslVerify, String caCertificateFile, ErrorHandlerInterface errorHandler)
+    	throws JavaREDCapException
     {
     	setUrl(url);
     	setSslVerify(sslVerify);
@@ -119,14 +146,14 @@ public class RedCapApiConnection implements RedCapApiConnectionInterface
 */
     
     @Override
-	public String call(RedCapApiParams data) throws JavaRedcapException {
+	public String call(REDCapApiRequest data) throws JavaREDCapException {
     	String result = null;
     	
     	HttpRequest request = HttpRequest.newBuilder()
     		      .uri(serverUri)
     		      .timeout(Duration.ofSeconds(DEFAULT_TIMEOUT_IN_SECONDS))
     		      .header("Content-Type", "application/x-www-form-urlencoded")
-    		      .POST(HttpRequest.BodyPublishers.ofString(data.toFormData()))
+    		      .POST(HttpRequest.BodyPublishers.ofString(data.toWwwFormUrlencoded()))
     		      .build();
 
     	try {
@@ -134,7 +161,7 @@ public class RedCapApiConnection implements RedCapApiConnectionInterface
 			
 			result = response.body();
 		} catch (IOException | InterruptedException ioe) {
-			throw new JavaRedcapException(
+			throw new JavaREDCapException(
 					"IOException communicating with the server",
 					ErrorHandlerInterface.COMMUNICATION_ERROR,
 					ioe
@@ -145,8 +172,8 @@ public class RedCapApiConnection implements RedCapApiConnectionInterface
 	}
     
 	@Override
-	public String callWithMap(Map<String, Object> dataMap) throws JavaRedcapException {
-		return call(new RedCapApiParams(dataMap));
+	public String callWithMap(Map<REDCapApiParameter, Object> dataMap) throws JavaREDCapException {
+		return call(new REDCapApiRequest(dataMap));
 	}
     
 
@@ -172,12 +199,12 @@ public class RedCapApiConnection implements RedCapApiConnectionInterface
 	}
 
 	@Override
-	public void setUrl(String url) throws JavaRedcapException {
+	public void setUrl(String url) throws JavaREDCapException {
 		if (null != url && url.trim().length() != 0) {
 			serverUri = URI.create(url);
 		}
 		else {
-			throw new JavaRedcapException("Invalid REDCap URL provided", ErrorHandlerInterface.INVALID_URL);
+			throw new JavaREDCapException("Invalid REDCap URL provided", ErrorHandlerInterface.INVALID_URL);
 		}
 	}
 
@@ -199,7 +226,7 @@ public class RedCapApiConnection implements RedCapApiConnectionInterface
     	return caCertFile;
     }
     
-    public void setCaCertificateFile(String caCertificateFile) throws JavaRedcapException
+    public void setCaCertificateFile(String caCertificateFile) throws JavaREDCapException
     {
     	if (null == caCertificateFile) {
     		caCertFile = null;
@@ -209,13 +236,13 @@ public class RedCapApiConnection implements RedCapApiConnectionInterface
     			File file = new File(caCertificateFile);
     			
     			if (!file.exists()) {
-    				throw new JavaRedcapException(
+    				throw new JavaREDCapException(
     						"The cert file '" + caCertificateFile + "' does not exist.",
     						ErrorHandlerInterface.CA_CERTIFICATE_FILE_NOT_FOUND
     						);
                 }
     			else if (!file.canRead()) {
-    				throw new JavaRedcapException(
+    				throw new JavaREDCapException(
     						"The cert file '" + caCertificateFile + "' exists, but cannot be read.",
     						ErrorHandlerInterface.CA_CERTIFICATE_FILE_UNREADABLE
     						);
@@ -224,7 +251,7 @@ public class RedCapApiConnection implements RedCapApiConnectionInterface
     	    	caCertFile = caCertificateFile;
     		}
     		else {
-    			throw new JavaRedcapException("The cert file is not defined", ErrorHandlerInterface.CA_CERTIFICATE_FILE_NOT_FOUND);
+    			throw new JavaREDCapException("The cert file is not defined", ErrorHandlerInterface.CA_CERTIFICATE_FILE_NOT_FOUND);
     		}
     	}
     			
@@ -238,12 +265,12 @@ public class RedCapApiConnection implements RedCapApiConnectionInterface
 	}
 
 	@Override
-	public void setTimeoutInSeconds(int timeoutInSeconds) throws JavaRedcapException {
+	public void setTimeoutInSeconds(int timeoutInSeconds) throws JavaREDCapException {
 		if (timeoutInSeconds > 1) {
 			timeout = timeoutInSeconds;
 		}
 		else {
-			throw new JavaRedcapException("Timeout must be at least 1 second", ErrorHandlerInterface.INVALID_ARGUMENT);
+			throw new JavaREDCapException("Timeout must be at least 1 second", ErrorHandlerInterface.INVALID_ARGUMENT);
 		}
 	}
 
@@ -253,7 +280,7 @@ public class RedCapApiConnection implements RedCapApiConnectionInterface
 	}
 
 	@Override
-	public void setConnectionTimeoutInSeconds(int connectionTimeoutInSeconds) throws JavaRedcapException {
+	public void setConnectionTimeoutInSeconds(int connectionTimeoutInSeconds) throws JavaREDCapException {
 		if (connectionTimeoutInSeconds > 1) {
 			connectionTimeout = connectionTimeoutInSeconds;
 
@@ -261,18 +288,18 @@ public class RedCapApiConnection implements RedCapApiConnectionInterface
 			httpClient = null;
 		}
 		else {
-			throw new JavaRedcapException("Timeout must be at elast 1 second", ErrorHandlerInterface.INVALID_ARGUMENT);
+			throw new JavaREDCapException("Timeout must be at elast 1 second", ErrorHandlerInterface.INVALID_ARGUMENT);
 		}
 	}
 
 	@Override
 	public Object clone() {
-		RedCapApiConnection clone = null;
+		REDCapApiConnection clone = null;
 
 		try {
-			clone = (RedCapApiConnection)super.clone();
+			clone = (REDCapApiConnection)super.clone();
 		} catch (CloneNotSupportedException e) {
-			clone = new RedCapApiConnection();
+			clone = new REDCapApiConnection();
 		}
 
 		clone.errorHandler = (ErrorHandler)errorHandler.clone();

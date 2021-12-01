@@ -16,6 +16,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+@SuppressWarnings("javadoc")
 public class ErrorHandlerTest
 {
 
@@ -36,7 +37,7 @@ public class ErrorHandlerTest
 
 		ErrorHandler handler = new ErrorHandler();
 
-		JavaRedcapException exception = assertThrows(JavaRedcapException.class, () -> {
+		JavaREDCapException exception = assertThrows(JavaREDCapException.class, () -> {
 			handler.throwException(testMsg, testCode);
 		});
 		
@@ -53,7 +54,7 @@ public class ErrorHandlerTest
 
 		ErrorHandler handler = new ErrorHandler();
 
-		JavaRedcapException exception = assertThrows(JavaRedcapException.class, () -> {
+		JavaREDCapException exception = assertThrows(JavaREDCapException.class, () -> {
 			handler.throwException(testMsg, testCode, testException);
 		});
 		
@@ -73,7 +74,7 @@ public class ErrorHandlerTest
 
 		ErrorHandler handler = new ErrorHandler();
 
-		JavaRedcapException exception = assertThrows(JavaRedcapException.class, () -> {
+		JavaREDCapException exception = assertThrows(JavaREDCapException.class, () -> {
 			handler.throwException(testMsg, testCode, testConnCode, testHttpCode, testException);
 		});
 		

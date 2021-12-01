@@ -10,10 +10,6 @@ package edu.utah.hsir.javaRedcap;
 
 
 /**
- * This file contains the PHPCapException class.
- */
-
-/**
  * Exception class for JavaRedcap exceptions. This is the exception that
  * JavaRedcap will throw when it encounters an error.
  *
@@ -22,25 +18,22 @@ package edu.utah.hsir.javaRedcap;
  * <pre>
  * <code class="java">
  * try {
- *     Object projectInfo = project->exportProjectInfo();
+ *     Object projectInfo = project.exportProjectInfo();
  * }
  * catch (JavaRedcapException exception) {
- *     print "The following error occurred: {exception->getMessage()}\n";
- *     print "Error code: {exception->getCode()}\n";
- *     connectionErrorNumber = exception->getConnectionErrorNumber();
+ *     print "The following error occurred: {exception.getMessage()}\n";
+ *     print "Error code: {exception.getCode()}\n";
+ *     connectionErrorNumber = exception.getConnectionErrorNumber();
  *     if (null != connectionErrorNumber) {
  *         print "A connection error occurred.\n";
  *         print "Connection error number: {connectionErrorNumber}\n";
  *     }
- *     print "Stack trace:\n{exception->getTraceAsString()}\n";
+ *     print "Stack trace:\n{exception.getTraceAsString()}\n";
  * }
  * </code>
  * </pre>
- *
- * @see http://php.net/manual/en/class.exception.php
- *         Information on additional methods provided by parent class Exception.
  */
-public class JavaRedcapException extends Exception
+public class JavaREDCapException extends Exception
 {
 	private static final long serialVersionUID = 3996085084391681356L;
 
@@ -56,9 +49,10 @@ public class JavaRedcapException extends Exception
     /**
      * Constructor.
      *
-     * @param The error message.
+     * @param message The error message
+     * @param code The error code
      */
-    public JavaRedcapException (String message, int code) {
+    public JavaREDCapException (String message, int code) {
     	super(message);
     	this.code = code;
     }
@@ -66,9 +60,11 @@ public class JavaRedcapException extends Exception
     /**
      * Constructor.
      *
-     * @param The error message.
+     * @param message The error message.
+     * @param code The error code
+     * @param previousException A previous exception
      */
-    public JavaRedcapException (String message, int code, Throwable previousException) {
+    public JavaREDCapException (String message, int code, Throwable previousException) {
     	super(message, previousException);
     	this.code = code;
     }
@@ -76,12 +72,13 @@ public class JavaRedcapException extends Exception
     /**
      * Constructor.
      *
-     * @param The error message.
-     * @param The connection error number
-     * @param The HTTP status code
-     * @param The previous exception.
+     * @param message The error message.
+     * @param code The connection error number
+     * @param connectionErrorNumber The connection error number if available.
+     * @param httpStatusCode The HTTP status code if available.
+     * @param previousException The previous exception. Can be null if there is no previous exception.
      */
-    public JavaRedcapException (
+    public JavaREDCapException (
     		String message,
     		int code,
     		Integer connectionErrorNumber,
@@ -94,6 +91,11 @@ public class JavaRedcapException extends Exception
     	this.httpStatusCode = httpStatusCode;
     }
 
+    /**
+     * Returns the error code for the exception.
+     * 
+     * @return The error code
+     */
     public int getCode()
     {
     	return code;
@@ -102,8 +104,7 @@ public class JavaRedcapException extends Exception
     /**
      * Returns the connection error number, or null if there was no
      * connection error. The possible numbers returned will depend on the
-     * type of connection class being used. For example, if cURL is being
-     * used, then the cURL error number would be returned.
+     * type of connection class being used.
      *
      * @return Connection error number, or null if there was no connection error.
      */

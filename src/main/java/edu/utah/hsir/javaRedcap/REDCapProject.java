@@ -25,30 +25,37 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import edu.utah.hsir.javaRedcap.enums.RedCapApiAction;
-import edu.utah.hsir.javaRedcap.enums.RedCapApiContent;
-import edu.utah.hsir.javaRedcap.enums.RedCapApiCsvDelimiter;
-import edu.utah.hsir.javaRedcap.enums.RedCapApiDateFormat;
-import edu.utah.hsir.javaRedcap.enums.RedCapApiDecimalCharacter;
-import edu.utah.hsir.javaRedcap.enums.RedCapApiFormat;
-import edu.utah.hsir.javaRedcap.enums.RedCapApiLogType;
-import edu.utah.hsir.javaRedcap.enums.RedCapApiOverwriteBehavior;
-import edu.utah.hsir.javaRedcap.enums.RedCapApiRawOrLabel;
-import edu.utah.hsir.javaRedcap.enums.RedCapApiReturnContent;
-import edu.utah.hsir.javaRedcap.enums.RedCapApiType;
+import edu.utah.hsir.javaRedcap.enums.REDCapApiAction;
+import edu.utah.hsir.javaRedcap.enums.REDCapApiContent;
+import edu.utah.hsir.javaRedcap.enums.REDCapApiCsvDelimiter;
+import edu.utah.hsir.javaRedcap.enums.REDCapApiDateFormat;
+import edu.utah.hsir.javaRedcap.enums.REDCapApiDecimalCharacter;
+import edu.utah.hsir.javaRedcap.enums.REDCapApiFormat;
+import edu.utah.hsir.javaRedcap.enums.REDCapApiLogType;
+import edu.utah.hsir.javaRedcap.enums.REDCapApiOverwriteBehavior;
+import edu.utah.hsir.javaRedcap.enums.REDCapApiRawOrLabel;
+import edu.utah.hsir.javaRedcap.enums.REDCapApiReturnContent;
+import edu.utah.hsir.javaRedcap.enums.REDCapApiType;
 
 /**
  * REDCap project class used to retrieve data from, and modify, REDCap projects.
+ * 
+ * Most methods in the class return either a String or a List of Maps of
+ * String to Object pairs (List<Map<String, Object>>). A string is returned with
+ * the method has been called specifying a particular data format (e.g. JSON or
+ * XML). When method is called that does not specify a format a List of records
+ * or rows is returned where each entry in the list is a Map of field names to
+ * values.
  */
-public class RedCapProject
+public class REDCapProject
 {
-	public static final String JSON_RESULT_ERROR_PATTERN = "^[\\s]*\\{\\\"error\\\":[\\s]*\\\"(.*)\\\"\\}[\\s]*$";
+	static final String JSON_RESULT_ERROR_PATTERN = "^[\\s]*\\{\\\"error\\\":[\\s]*\\\"(.*)\\\"\\}[\\s]*$";
 
     /** string REDCap API token for the project */
     protected String apiToken;
 
-    /** RedCapApiConnection connection to the REDCap API at the apiURL. */
-    protected RedCapApiConnectionInterface connection;
+    /** REDCapApiConnection connection to the REDCap API at the apiURL. */
+    protected REDCapApiConnectionInterface connection;
 
     /** Error handler for the project. */
     protected ErrorHandlerInterface errorHandler;
@@ -67,7 +74,7 @@ public class RedCapProject
      * # See the documentation for information on how to set this file up
      * String caCertificateFile = 'USERTrustRSACertificationAuthority.crt';
      *
-     * RedCapProject project = new RedCapProject(apiUrl, apiToken, sslVerify, caCertificateFile);
+     * REDCapProject project = new REDCapProject(apiUrl, apiToken, sslVerify, caCertificateFile);
      * </code>
      * </pre>
      *
@@ -85,24 +92,24 @@ public class RedCapProject
      *    caCertificateFile arguments will be ignored, and the values for these
      *    set in the connection will be used.
      *
-     * @throws JavaRedcapException if any of the arguments are invalid
+     * @throws JavaREDCapException if any of the arguments are invalid
      */
-    public RedCapProject (
+    public REDCapProject (
     		String apiUrl,
     		String apiToken,
     		boolean sslVerify,
     		String caCertificateFile,
     		ErrorHandlerInterface errorHandler,
-    		RedCapApiConnectionInterface connection
-    ) throws JavaRedcapException {
+    		REDCapApiConnectionInterface connection
+    ) throws JavaREDCapException {
     	setErrorHandler(errorHandler);
 
-        this.apiToken = RedCap.processApiTokenArgument(apiToken, 32, this.errorHandler);
+        this.apiToken = REDCap.processApiTokenArgument(apiToken, 32, this.errorHandler);
 
         if (null != connection) {
             this.connection = connection;
         } else {
-            this.connection = new RedCapApiConnection(apiUrl, sslVerify, caCertificateFile);
+            this.connection = new REDCapApiConnection(apiUrl, sslVerify, caCertificateFile);
         }
     }
 
@@ -110,10 +117,12 @@ public class RedCapProject
     /**
      * Exports all the numbers and names of the arms in the project.
      *
-     * @return A string containing the data in JSON format.
-     * @throws JavaRedcapException 
+     * @return The information about each of the arms specified for the project.
+     *  
+     * @throws JavaREDCapException Thrown if there is a problem communicating
+     * 		with REDCap.
      */
-    public List<Map<String, Object>> exportArms() throws JavaRedcapException {
+    public List<Map<String, Object>> exportArms() throws JavaREDCapException {
     	return exportArms(new HashSet<Integer>());
     }
 
@@ -124,56 +133,66 @@ public class RedCapProject
      *     If no arms are specified, then information for all arms will be returned.
      *
      * @return A string containing the data in JSON format.
-     * @throws JavaRedcapException 
+     * 
+     * @throws JavaREDCapException Thrown if there is a problem communicating
+     * 		with REDCap or with one of the input parameters.
      */
-    public List<Map<String, Object>> exportArms(Set<Integer> arms) throws JavaRedcapException {
-    	String result = exportArms(RedCapApiFormat.JSON, arms);
+    public List<Map<String, Object>> exportArms(Set<Integer> arms) throws JavaREDCapException {
+    	String result = exportArms(REDCapApiFormat.JSON, arms);
 
     	List<Map<String, Object>> nativeResult;
 		try {
 			nativeResult = new ObjectMapper().readValue(result, new TypeReference<List<Map<String, Object>>>(){});
 		} catch (JsonProcessingException e) {
-			throw new JavaRedcapException("Exception processing REDCap response", ErrorHandlerInterface.JSON_ERROR, e);
+			throw new JavaREDCapException("Exception processing REDCap response", ErrorHandlerInterface.JSON_ERROR, e);
 		}
 
 		return nativeResult;
     }
 
     /**
-     * Exports the numbers and names of the arms in the project.
+     * Exports the numbers and names of the arms in the project in the
+     * specified format.
      *
      * @param format The format used to export the arm data.
      *     <ul>
-     *       <li> 'csv' - string of CSV (comma-separated values)</li>
-     *       <li> 'json' - string of JSON encoded values</li>
-     *       <li> 'xml' - string of XML encoded data</li>
+     *       <li> REDCapApiFormat.CSV - string of CSV (comma-separated values)</li>
+     *       <li> REDCapApiFormat.JSON - string of JSON encoded values</li>
+     *       <li> REDCapApiFormat.XML - string of XML encoded data</li>
+     *       <li> null - defaults to REDCapApiFormat.JSON</li>
      *     </ul>
      *
      * @return A string containing the data.
-     * @throws JavaRedcapException 
+     * 
+     * @throws JavaREDCapException Thrown if there is an issue communicating
+     * 		with the REDCap server.  
      */
-    public String exportArms(RedCapApiFormat format) throws JavaRedcapException {
+    public String exportArms(REDCapApiFormat format) throws JavaREDCapException {
     	return exportArms(format, null);
     }
 
     /**
-     * Exports the numbers and names of the arms in the project.
+     * Exports the numbers and names of the specified arms in the specified
+     * format.
      *
      * @param format The format used to export the arm data.
      *     <ul>
-     *       <li> 'csv' - string of CSV (comma-separated values)</li>
-     *       <li> 'json' - string of JSON encoded values</li>
-     *       <li> 'xml' - string of XML encoded data</li>
+     *       <li> REDCapApiFormat.CSV - string of CSV (comma-separated values)</li>
+     *       <li> REDCapApiFormat.JSON - string of JSON encoded values</li>
+     *       <li> REDCapApiFormat.XML - string of XML encoded data</li>
+     *       <li> null - defaults to REDCapApiFormat.JSON</li>
      *     </ul>
      * @param arms Set of integers that are the numbers of the arms to export.
-     *     If no arms are specified, then information for all arms will be returned.
+     * 		If null or no arms are specified, then information for all arms
      *
      * @return A string containing the data.
-     * @throws JavaRedcapException 
+     * 
+     * @throws JavaREDCapException Thrown if there is an issue communicating
+     * 		with the REDCap server.  
      */
-    public String exportArms(RedCapApiFormat format, Set<Integer> arms) throws JavaRedcapException
+    public String exportArms(REDCapApiFormat format, Set<Integer> arms) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.ARM, errorHandler);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.ARM, errorHandler);
 
         data.setFormat(format);
         data.setArms(arms, false);
@@ -191,11 +210,11 @@ public class RedCapProject
      * 			Each entry must have two keys, 'arm_num' and 'name'. 'arm_num'
      * 			must be a positive Integer and 'name' must be a String.
      *
-     * @throws JavaRedcapException if an error occurs.
+     * @throws JavaREDCapException if an error occurs.
      *
      * @return The number of arms imported.
      */
-    public int importArms(List<Map<String, Object>> arms) throws JavaRedcapException {
+    public int importArms(List<Map<String, Object>> arms) throws JavaREDCapException {
     	return importArms(arms, false);
     }
 
@@ -205,12 +224,14 @@ public class RedCapProject
      * @param arms The arms to import. This will be a list of Map entries.
      * 			Each entry must have two keys, 'arm_num' and 'name'. 'arm_num'
      * 			must be a positive Integer and 'name' must be a String.
-     *
-     * @throws JavaRedcapException if an error occurs.
+     * @param override A flag indicating whether to override any arms already
+     * 		defined for the project.
+     * 
+     * @throws JavaREDCapException if an error occurs.
      *
      * @return The number of arms imported.
      */
-    public int importArms(List<Map<String, Object>> arms, boolean override) throws JavaRedcapException {
+    public int importArms(List<Map<String, Object>> arms, boolean override) throws JavaREDCapException {
     	int result = 0;
 
     	for (Map<String, Object> entry : arms) {
@@ -265,9 +286,9 @@ public class RedCapProject
 		try {
 	    	// Convert to JSON and send it on.
 	    	String json = new ObjectMapper().writeValueAsString(arms);
-	    	result = importArms(json, RedCapApiFormat.JSON, override);
+	    	result = importArms(json, REDCapApiFormat.JSON, override);
 		} catch (JsonProcessingException e) {
-			throw new JavaRedcapException("Exception preparing REDCap request", ErrorHandlerInterface.JSON_ERROR, e);
+			throw new JavaREDCapException("Exception preparing REDCap request", ErrorHandlerInterface.JSON_ERROR, e);
 		}
 
     	return result;
@@ -285,11 +306,11 @@ public class RedCapProject
      *       <li> 'xml' - string of XML encoded data</li>
      *     </ul>
      *
-     * @throws JavaRedcapException if an error occurs.
+     * @throws JavaREDCapException if an error occurs.
      *
      * @return integer the number of arms imported.
      */
-    public int importArms(String arms, RedCapApiFormat format) throws JavaRedcapException {
+    public int importArms(String arms, REDCapApiFormat format) throws JavaREDCapException {
     	return importArms(arms, format, false);
     }
 
@@ -312,14 +333,14 @@ public class RedCapProject
      *       <li> true - delete all existing arms before importing.</li>
      *     </ul>
      *     
-     * @throws JavaRedcapException if an error occurs.
+     * @throws JavaREDCapException if an error occurs.
      *
      * @return The number of arms imported.
      */
-    public int importArms(String arms, RedCapApiFormat format, boolean override) throws JavaRedcapException
+    public int importArms(String arms, REDCapApiFormat format, boolean override) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.ARM, errorHandler);
-    	data.setAction(RedCapApiAction.IMPORT);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.ARM, errorHandler);
+    	data.setAction(REDCapApiAction.IMPORT);
 
         //#---------------------------------------
         //# Process arguments
@@ -340,14 +361,14 @@ public class RedCapProject
      *
      * @param arms Set of arm numbers to delete.
      *
-     * @return int The number of arms deleted.
+     * @return The number of arms deleted.
      *
-     * @throws JavaRedcapException if an error occurs, including if the arms array is null or empty
+     * @throws JavaREDCapException if an error occurs, including if the arms array is null or empty
      */
-    public int deleteArms(Set<Integer> arms) throws JavaRedcapException
+    public int deleteArms(Set<Integer> arms) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.ARM, errorHandler);
-    	data.setAction(RedCapApiAction.DELETE);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.ARM, errorHandler);
+    	data.setAction(REDCapApiAction.DELETE);
     	data.setArms(arms, true);
 
         String result = connection.call(data);
@@ -365,32 +386,34 @@ public class RedCapProject
      * 		Map with the following keys:'event_name', 'arm_num',
      * 		'day_offset', 'offset_min', 'offset_max', 'unique_event_name',
      * 		'custom_event_label'
-     * @throws JavaRedcapException 
+     * 
+     * @throws JavaREDCapException Thrown if an error occurs.
      */
-    public List<Map<String, Object>> exportEvents() throws JavaRedcapException {
+    public List<Map<String, Object>> exportEvents() throws JavaREDCapException {
     	return exportEvents(new HashSet<Integer>());
     }
 
     /**
      * Exports information about the specified events.
      *
-     * @param A set of arm numbers for which events should be exported.
+     * @param arms A set of arm numbers for which events should be exported.
      *     If no arms are specified, then all events will be returned.
      *     
      * @return Information about the events. Each element of the list is a
      * 		Map with the following keys:'event_name', 'arm_num',
      * 		'day_offset', 'offset_min', 'offset_max', 'unique_event_name',
      * 		'custom_event_label'
-     * @throws JavaRedcapException 
+     * 
+     * @throws JavaREDCapException Thrown if an error occurs.
      */
-    public List<Map<String, Object>> exportEvents(Set<Integer> arms) throws JavaRedcapException {
-    	String result = exportEvents(RedCapApiFormat.JSON, arms);
+    public List<Map<String, Object>> exportEvents(Set<Integer> arms) throws JavaREDCapException {
+    	String result = exportEvents(REDCapApiFormat.JSON, arms);
 
     	List<Map<String, Object>> nativeResult = null;
 		try {
 			nativeResult = new ObjectMapper().readValue(result, new TypeReference<List<Map<String, Object>>>(){});
 		} catch (JsonProcessingException e) {
-			throw new JavaRedcapException("Exception procesing REDCap response", ErrorHandlerInterface.JSON_ERROR, e);
+			throw new JavaREDCapException("Exception procesing REDCap response", ErrorHandlerInterface.JSON_ERROR, e);
 		}
 
 		return nativeResult;
@@ -408,9 +431,10 @@ public class RedCapProject
      *     </ul>
      *     
      * @return A string with the information about the specified events in the format requested.
-     * @throws JavaRedcapException 
+     * 
+     * @throws JavaREDCapException Thrown if an error occurs.
      */
-    public String exportEvents(RedCapApiFormat format) throws JavaRedcapException {
+    public String exportEvents(REDCapApiFormat format) throws JavaREDCapException {
     	return exportEvents(format, null);
     }
 
@@ -439,11 +463,12 @@ public class RedCapProject
      *     If no arms are specified, then all events will be returned.
      *     
      * @return A string with the information about the specified events in the format requested.
-     * @throws JavaRedcapException 
+     * 
+     * @throws JavaREDCapException Thrown if an error occurs.
      */
-    public String exportEvents(RedCapApiFormat format, Set<Integer> arms) throws JavaRedcapException
+    public String exportEvents(REDCapApiFormat format, Set<Integer> arms) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.EVENT, errorHandler);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.EVENT, errorHandler);
 
         //#---------------------------------------
         //# Process arguments
@@ -464,16 +489,16 @@ public class RedCapProject
     /**
      * Imports the specified events into the project.
      *
-     * @param evvents The events to import. This will be a list of Map entries.
+     * @param events The events to import. This will be a list of Map entries.
      * 			Each entry must have two keys, 'arm_num' and 'event_name'.
      * 			'arm_num' must be a positive Integer and 'event_name' must be
      * 			a String.
      *
      * @return The number of events imported.
      * 
-     * @throws JavaRedcapException if an error occurs.
+     * @throws JavaREDCapException Thrown if an error occurs.
      */
-    public int importEvents(List<Map<String, Object>> events) throws JavaRedcapException {
+    public int importEvents(List<Map<String, Object>> events) throws JavaREDCapException {
     	return importEvents(events, false);
     }
 
@@ -484,18 +509,19 @@ public class RedCapProject
      * 			Each entry must have two keys, 'arm_num' and 'event_name'.
      * 			'arm_num' must be a positive Integer and 'event_name' must be
      * 			a String.
-     * @param format the Tormat for the import.
+     * @param override
      *     <ul>
-     *       <li> 'csv' - string of CSV (comma-separated values)</li>
-     *       <li> 'json' - string of JSON encoded values</li>
-     *       <li> 'xml' - string of XML encoded data</li>
+     *       <li> false - [default] don't delete existing events; only add new
+     *       events or renames existing events.
+     *       </li>
+     *       <li> true - delete all existing events before importing.</li>
      *     </ul>
      *     
      * @return The number of events imported.
      * 
-     * @throws JavaRedcapException if an error occurs.
+     * @throws JavaREDCapException Thrown if an error occurs.
      */
-    public int importEvents(List<Map<String, Object>> events, boolean override) throws JavaRedcapException {
+    public int importEvents(List<Map<String, Object>> events, boolean override) throws JavaREDCapException {
     	int result = 0;
 
     	for (Map<String, Object> entry : events) {
@@ -551,10 +577,10 @@ public class RedCapProject
     		// Convert to JSON and send it on.
     		String json = new ObjectMapper().writeValueAsString(events);
 
-    		result = importEvents(json, RedCapApiFormat.JSON, override);
+    		result = importEvents(json, REDCapApiFormat.JSON, override);
     	}
     	catch (JsonProcessingException e) {
-    		throw new JavaRedcapException("Exception preparing REDCap request", ErrorHandlerInterface.JSON_ERROR, e);
+    		throw new JavaREDCapException("Exception preparing REDCap request", ErrorHandlerInterface.JSON_ERROR, e);
     	}
 
     	return result;
@@ -572,11 +598,11 @@ public class RedCapProject
      *       <li> 'xml' - string of XML encoded data</li>
      *     </ul>
      *
-     * @throws JavaRedcapException if an error occurs.
-     *
      * @return The number of events imported.
+     * 
+     * @throws JavaREDCapException Thrown if an error occurs.
      */
-    public int importEvents(String events, RedCapApiFormat format) throws JavaRedcapException {
+    public int importEvents(String events, REDCapApiFormat format) throws JavaREDCapException {
     	return importEvents(events, format, false);
     }
 
@@ -599,21 +625,21 @@ public class RedCapProject
      *       <li> true - delete all existing events before importing.</li>
      *     </ul>
      *
-     * @throws JavaRedcapException if an error occurs.
-     *
      * @return The number of events imported.
+     *     
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public int importEvents(String events, RedCapApiFormat format, boolean override) throws JavaRedcapException
+    public int importEvents(String events, REDCapApiFormat format, boolean override) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.EVENT, errorHandler);
-    	data.setAction(RedCapApiAction.IMPORT);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.EVENT, errorHandler);
+    	data.setAction(REDCapApiAction.IMPORT);
 
         //#---------------------------------------
         //# Process arguments
         //#---------------------------------------
         data.setFormat(format);
         data.setOverride(override);
-        data.setData(processImportDataArgument(events, "arms", format));
+        data.setData(processImportDataArgument(events, "events", format));
 
         String result = connection.call(data);
 
@@ -628,14 +654,14 @@ public class RedCapProject
      *
      * @param events Array of event names of events to delete.
      *
-     * @throws JavaRedcapException if an error occurs, including if the events array is null or empty.
-     *
      * @return The number of events deleted.
+     *     
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public int deleteEvents(Set<String> events) throws JavaRedcapException
+    public int deleteEvents(Set<String> events) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.EVENT, errorHandler);
-    	data.setAction(RedCapApiAction.DELETE);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.EVENT, errorHandler);
+    	data.setAction(REDCapApiAction.DELETE);
     	data.setEvents(events, true);
 
         String result = connection.call(data);
@@ -656,16 +682,17 @@ public class RedCapProject
      *       <li>choice_value</li>
      *       <li>export_field_name</li>
      *     </ul>
-     * @throws JavaRedcapException 
+     *     
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public List<Map<String, String>> exportFieldNames() throws JavaRedcapException {
-    	String result = exportFieldNames(RedCapApiFormat.JSON);
+    public List<Map<String, String>> exportFieldNames() throws JavaREDCapException {
+    	String result = exportFieldNames(REDCapApiFormat.JSON);
 
 		List<Map<String, String>> nativeResult = null;
 		try {
 			nativeResult = new ObjectMapper().readValue(result, new TypeReference<List<Map<String, String>>>(){});
 		} catch (JsonProcessingException e) {
-			throw new JavaRedcapException ("Exception processing REDCap response", ErrorHandlerInterface.JSON_ERROR, e);
+			throw new JavaREDCapException ("Exception processing REDCap response", ErrorHandlerInterface.JSON_ERROR, e);
 		}
 
 		return nativeResult;
@@ -685,16 +712,17 @@ public class RedCapProject
      *       <li>choice_value</li>
      *       <li>export_field_name</li>
      *     </ul>
-     * @throws JavaRedcapException 
+     *     
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public Map<String, String> exportFieldNames(String field) throws JavaRedcapException {
-    	String result = exportFieldNames(RedCapApiFormat.JSON, field);
+    public Map<String, String> exportFieldNames(String field) throws JavaREDCapException {
+    	String result = exportFieldNames(REDCapApiFormat.JSON, field);
 
 		List<Map<String, String>> nativeResult = null;
 		try {
 			nativeResult = new ObjectMapper().readValue(result, new TypeReference<List<Map<String, String>>>(){});
 		} catch (JsonProcessingException e) {
-			throw new JavaRedcapException ("Exception processing REDCap response", ErrorHandlerInterface.JSON_ERROR, e);
+			throw new JavaREDCapException ("Exception processing REDCap response", ErrorHandlerInterface.JSON_ERROR, e);
 		}
 
 		return nativeResult.get(0);
@@ -711,9 +739,10 @@ public class RedCapProject
      *     </ul>
      *
      * @return A string with the information about the project field names in the format requested.
-     * @throws JavaRedcapException 
+     *     
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public String exportFieldNames(RedCapApiFormat format) throws JavaRedcapException {
+    public String exportFieldNames(REDCapApiFormat format) throws JavaREDCapException {
     	return exportFieldNames(format, null);
     }
 
@@ -731,11 +760,12 @@ public class RedCapProject
      *     		fields is exported.
      *
      * @return A string with the information about the project field names in the format requested.
-     * @throws JavaRedcapException 
+     *     
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public String exportFieldNames(RedCapApiFormat format, String field) throws JavaRedcapException
+    public String exportFieldNames(REDCapApiFormat format, String field) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.EXPORT_FIELD_NAMES, errorHandler);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.EXPORT_FIELD_NAMES, errorHandler);
 
         //#---------------------------------------
         //# Process arguments
@@ -756,10 +786,10 @@ public class RedCapProject
      * @param field The name of the field containing the file to export.
      *
      * @return The contents of the file that was exported.
-     * 
-     * @throws JavaRedcapException if an error occurs.
+     *     
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public String exportFile(String recordId, String field) throws JavaRedcapException {
+    public String exportFile(String recordId, String field) throws JavaREDCapException {
     	return exportFile(recordId, field, null, null);
     }
 
@@ -771,10 +801,10 @@ public class RedCapProject
      * @param event The name of event for file export (for longitudinal studies).
      *
      * @return The contents of the file that was exported.
-     * 
-     * @throws JavaRedcapException if an error occurs.
+     *     
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public String exportFile(String recordId, String field, String event) throws JavaRedcapException {
+    public String exportFile(String recordId, String field, String event) throws JavaREDCapException {
     	return exportFile(recordId, field, event, null);
     }
 
@@ -786,10 +816,10 @@ public class RedCapProject
      * @param repeatInstance The number of a repeating instance
      *
      * @return The contents of the file that was exported.
-     * 
-     * @throws JavaRedcapException if an error occurs.
+     *     
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public String exportFile(String recordId, String field, Integer repeatInstance) throws JavaRedcapException {
+    public String exportFile(String recordId, String field, Integer repeatInstance) throws JavaREDCapException {
     	return exportFile(recordId, field, null, repeatInstance);
     }
 
@@ -802,13 +832,13 @@ public class RedCapProject
      * @param repeatInstance The number of a repeating instance
      *
      * @return The contents of the file that was exported.
-     * 
-     * @throws JavaRedcapException if an error occurs.
+     *     
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public String exportFile(String recordId, String field, String event, Integer repeatInstance) throws JavaRedcapException
+    public String exportFile(String recordId, String field, String event, Integer repeatInstance) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.FILE, errorHandler);
-    	data.setAction(RedCapApiAction.EXPORT);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.FILE, errorHandler);
+    	data.setAction(REDCapApiAction.EXPORT);
 
         //#--------------------------------------------
         //# Process arguments
@@ -835,10 +865,10 @@ public class RedCapProject
      * @param filename The name of the file to import.
      * @param recordId The record ID of the record to import the file into.
      * @param field The field of the record to import the file into.
-     * 
-     * @throws JavaRedcapException 
+     *     
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public void importFile(String filename, String recordId, String field) throws JavaRedcapException {
+    public void importFile(String filename, String recordId, String field) throws JavaREDCapException {
     	importFile(filename, recordId, field, null, null);
     }
 
@@ -852,9 +882,9 @@ public class RedCapProject
      * @param event The event of the record to import the file into
      *     (only for longitudinal studies).
      *     
-     * @throws JavaRedcapException 
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public void importFile(String filename, String recordId, String field, String event) throws JavaRedcapException {
+    public void importFile(String filename, String recordId, String field, String event) throws JavaREDCapException {
     	importFile(filename, recordId, field, event, null);
     }
 
@@ -869,9 +899,9 @@ public class RedCapProject
      *     the file into (only for studies that have repeating events
      *     and/or instruments).
      *     
-     * @throws JavaRedcapException 
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public void importFile(String filename, String recordId, String field, Integer repeatInstance) throws JavaRedcapException {
+    public void importFile(String filename, String recordId, String field, Integer repeatInstance) throws JavaREDCapException {
     	importFile(filename, recordId, field, null, repeatInstance);
     }
 
@@ -902,12 +932,12 @@ public class RedCapProject
      *     the file into (only for studies that have repeating events
      *     and/or instruments).
      *     
-     * @throws JavaRedcapException 
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public void importFile(String filename, String recordId, String field, String event, Integer repeatInstance) throws JavaRedcapException
+    public void importFile(String filename, String recordId, String field, String event, Integer repeatInstance) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.FILE, errorHandler);
-    	data.setAction(RedCapApiAction.IMPORT);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.FILE, errorHandler);
+    	data.setAction(REDCapApiAction.IMPORT);
 
         //#----------------------------------------
         //# Process non-file arguments
@@ -935,9 +965,12 @@ public class RedCapProject
      *
      * @param recordId The record ID of the file to delete.
      * @param field The field name of the file to delete.
-     * @throws JavaRedcapException 
+     * 
+     * @return The response from the redcap server.
+     * 
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public String deleteFile(String recordId, String field) throws JavaRedcapException {
+    public String deleteFile(String recordId, String field) throws JavaREDCapException {
     	return deleteFile(recordId, field, null, null);
     }
 
@@ -947,9 +980,12 @@ public class RedCapProject
      * @param recordId The record ID of the file to delete.
      * @param field The field name of the file to delete.
      * @param event The event of the file to delete (only for longitudinal studies).
-     * @throws JavaRedcapException 
+     *
+     * @return The response from the REDCap server.
+     * 
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public String deleteFile(String recordId, String field, String event) throws JavaRedcapException {
+    public String deleteFile(String recordId, String field, String event) throws JavaREDCapException {
     	return deleteFile(recordId, field, event, null);
     }
 
@@ -958,11 +994,14 @@ public class RedCapProject
      *
      * @param recordId The record ID of the file to delete.
      * @param field The field name of the file to delete.
-     * @param repeatInstance The repeat instance of the file to delete
+     * @param repeatingInstance The repeat instance of the file to delete
      *     (only for studies that have repeating events and/or instruments).
-     * @throws JavaRedcapException 
+     *
+     * @return The response from the REDCap server.
+     * 
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public String deleteFile(String recordId, String field, Integer repeatingInstance) throws JavaRedcapException {
+    public String deleteFile(String recordId, String field, Integer repeatingInstance) throws JavaREDCapException {
     	return deleteFile(recordId, field, null, repeatingInstance);
     }
 
@@ -974,12 +1013,15 @@ public class RedCapProject
      * @param event The event of the file to delete (only for longitudinal studies).
      * @param repeatInstance The repeat instance of the file to delete
      *     (only for studies that have repeating events and/or instruments).
-     * @throws JavaRedcapException 
+     *
+     * @return The respons from the REDCap server
+     * 
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public String deleteFile(String recordId, String field, String event, Integer repeatInstance) throws JavaRedcapException
+    public String deleteFile(String recordId, String field, String event, Integer repeatInstance) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.FILE, errorHandler);
-    	data.setAction(RedCapApiAction.DELETE);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.FILE, errorHandler);
+    	data.setAction(REDCapApiAction.DELETE);
 
         //#----------------------------------------
         //# Process arguments
@@ -1001,16 +1043,17 @@ public class RedCapProject
      * Exports information about the instruments (data entry forms) for the project.
      *
      * @return A list of Map entries.
-     * @throws JavaRedcapException 
+     *     
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public List<Map<String, String>> exportInstruments() throws JavaRedcapException {
-    	String result = exportInstruments(RedCapApiFormat.JSON);
+    public List<Map<String, String>> exportInstruments() throws JavaREDCapException {
+    	String result = exportInstruments(REDCapApiFormat.JSON);
 
 		List<Map<String, String>> nativeResult = null;
 		try {
 			nativeResult = new ObjectMapper().readValue(result, new TypeReference<List<Map<String, String>>>(){});
 		} catch (JsonProcessingException e) {
-			throw new JavaRedcapException ("Exception processing REDCap response", ErrorHandlerInterface.JSON_ERROR, e);
+			throw new JavaREDCapException ("Exception processing REDCap response", ErrorHandlerInterface.JSON_ERROR, e);
 		}
 
 		return nativeResult;
@@ -1027,11 +1070,12 @@ public class RedCapProject
      *     </ul>
      *
      * @return A string with the information about the project field names in the format requested.
-     * @throws JavaRedcapException 
+     *     
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public String exportInstruments(RedCapApiFormat format) throws JavaRedcapException
+    public String exportInstruments(REDCapApiFormat format) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.INSTRUMENT, errorHandler);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.INSTRUMENT, errorHandler);
         data.setFormat(format);        
 
         String instrumentsData = connection.call(data);
@@ -1056,12 +1100,12 @@ public class RedCapProject
      * @param allRecords If this is set to true, all forms for all records
      * 			will be retrieved (the recordId, event, and form arguments
      *     		will be ignored).
-     * @param compactDisplay
+     * @param compactDisplay Set to true to compact the field layout in the
+     * 		PDF.
      *
      * @return string PDF content of requested instruments (forms).
-     * @throws JavaRedcapException 
-     * 
-     * @throws PhpCapException if an error occurs.
+     *     
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
     public String exportPdfFileOfInstruments(
         String file,
@@ -1070,8 +1114,8 @@ public class RedCapProject
         String form,
         boolean allRecords,
         boolean compactDisplay
-    ) throws JavaRedcapException {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.PDF, errorHandler);
+    ) throws JavaREDCapException {
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.PDF, errorHandler);
 
     	if (allRecords) {
             data.setAllRecords(allRecords);
@@ -1102,9 +1146,10 @@ public class RedCapProject
      *       <li>'unique_event_name'</li>
      *       <li>'form'</li>
      *     </ul>
-     * @throws JavaRedcapException 
+     *     
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public List<Map<String, Object>> exportInstrumentEventMappings() throws JavaRedcapException {
+    public List<Map<String, Object>> exportInstrumentEventMappings() throws JavaREDCapException {
     	return exportInstrumentEventMappings(null);
     }
 
@@ -1122,16 +1167,17 @@ public class RedCapProject
      *       <li>'unique_event_name'</li>
      *       <li>'form'</li>
      *     </ul>
-     * @throws JavaRedcapException 
+     *     
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public List<Map<String, Object>> exportInstrumentEventMappings(Set<Integer> arms) throws JavaRedcapException {
-    	String result = exportInstrumentEventMappings(RedCapApiFormat.JSON, arms);
+    public List<Map<String, Object>> exportInstrumentEventMappings(Set<Integer> arms) throws JavaREDCapException {
+    	String result = exportInstrumentEventMappings(REDCapApiFormat.JSON, arms);
 
 		List<Map<String, Object>> nativeResult = null;
 		try {
 			nativeResult = new ObjectMapper().readValue(result, new TypeReference<List<Map<String, Object>>>(){});
 		} catch (JsonProcessingException e) {
-			throw new JavaRedcapException ("Exception processing REDCap response", ErrorHandlerInterface.JSON_ERROR, e);
+			throw new JavaREDCapException ("Exception processing REDCap response", ErrorHandlerInterface.JSON_ERROR, e);
 		}
 
 		return nativeResult;
@@ -1159,11 +1205,12 @@ public class RedCapProject
      * 			all arms will be exported.
      *
      * @return A string with the event mappings in the format requested.
-     * @throws JavaRedcapException 
+     *     
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public String exportInstrumentEventMappings(RedCapApiFormat format, Set<Integer> arms) throws JavaRedcapException
+    public String exportInstrumentEventMappings(REDCapApiFormat format, Set<Integer> arms) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.FORM_EVENT_MAPPING, errorHandler);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.FORM_EVENT_MAPPING, errorHandler);
 
         //#------------------------------------------
         //# Process arguments
@@ -1188,11 +1235,11 @@ public class RedCapProject
      *     		arm_num, unique_event_name, form
      *
      * @return The number of mappings imported.
-     * 
-     * @throws JavaRedcapException if an error occurs.
+     *     
+     * @throws JavaREDCapException Thrown if an error occurs 
      *
      */
-    public int importInstrumentEventMappings(List<Map<String, Object>> mappings) throws JavaRedcapException {
+    public int importInstrumentEventMappings(List<Map<String, Object>> mappings) throws JavaREDCapException {
     	int result = 0;
 
     	for (Map<String, Object> entry : mappings) {
@@ -1265,10 +1312,10 @@ public class RedCapProject
     		// Convert to JSON and send it on.
     		String json = new ObjectMapper().writeValueAsString(mappings);
 
-    		result = importInstrumentEventMappings(json, RedCapApiFormat.JSON);
+    		result = importInstrumentEventMappings(json, REDCapApiFormat.JSON);
     	}
     	catch (JsonProcessingException e) {
-    		throw new JavaRedcapException("Exception preparing REDCap request", ErrorHandlerInterface.JSON_ERROR, e);
+    		throw new JavaREDCapException("Exception preparing REDCap request", ErrorHandlerInterface.JSON_ERROR, e);
     	}
 
     	return result;
@@ -1289,12 +1336,12 @@ public class RedCapProject
      *     </ul>
      *
      * @return The number of mappings imported.
-     * 
-     * @throws JavaRedcapException if an error occurs.
+     *     
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public int importInstrumentEventMappings(String mappings, RedCapApiFormat format) throws JavaRedcapException
+    public int importInstrumentEventMappings(String mappings, REDCapApiFormat format) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.FORM_EVENT_MAPPING, errorHandler);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.FORM_EVENT_MAPPING, errorHandler);
 
         //#---------------------------------------
         //# Process arguments
@@ -1323,17 +1370,18 @@ public class RedCapProject
      *         provided are: 'field_name', 'form_name', 'field_type', 'field_label'.
      *         See REDCap API documentation
      *         for more information.
-     * @throws JavaRedcapException 
+     *     
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public List<Map<String, Object>> exportMetadata(Set<String> fields, Set<String> forms) throws JavaRedcapException
+    public List<Map<String, Object>> exportMetadata(Set<String> fields, Set<String> forms) throws JavaREDCapException
     {
-    	String result = exportMetadata(RedCapApiFormat.JSON, fields, forms);
+    	String result = exportMetadata(REDCapApiFormat.JSON, fields, forms);
 
 		List<Map<String, Object>> nativeResult = null;
 		try {
 			nativeResult = new ObjectMapper().readValue(result, new TypeReference<List<Map<String, Object>>>(){});
 		} catch (JsonProcessingException e) {
-			throw new JavaRedcapException ("Exception processing REDCap response", ErrorHandlerInterface.JSON_ERROR, e);
+			throw new JavaREDCapException ("Exception processing REDCap response", ErrorHandlerInterface.JSON_ERROR, e);
 		}
 
 		return nativeResult;
@@ -1359,11 +1407,12 @@ public class RedCapProject
      * 			'form_name', 'field_type', 'field_label'.<br>
      *          See REDCap API documentation for more information on the
      *			results of this method.
-     * @throws JavaRedcapException 
+     *     
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public String exportMetadata(RedCapApiFormat format, Set<String> fields, Set<String> forms) throws JavaRedcapException
+    public String exportMetadata(REDCapApiFormat format, Set<String> fields, Set<String> forms) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.METADATA, errorHandler);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.METADATA, errorHandler);
 
         //#---------------------------------------
         //# Process format
@@ -1387,20 +1436,20 @@ public class RedCapProject
      * @param metadata A List of Map entries for the metadata to import.
      *
      * @return The number of fields imported.
-     *
-     * @throws JavaRedcapException if an error occurs.
+     *     
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public int importMetadata(List<Map<String, Object>> metadata) throws JavaRedcapException {
+    public int importMetadata(List<Map<String, Object>> metadata) throws JavaREDCapException {
     	int result = 0;
 
     	try {
     		// Convert to JSON and send it on.
     		String json = new ObjectMapper().writeValueAsString(metadata);
 
-    		result = importMetadata(json, RedCapApiFormat.JSON);
+    		result = importMetadata(json, REDCapApiFormat.JSON);
     	}
     	catch (JsonProcessingException e) {
-    		throw new JavaRedcapException("Exception preparing REDCap request", ErrorHandlerInterface.JSON_ERROR, e);
+    		throw new JavaREDCapException("Exception preparing REDCap request", ErrorHandlerInterface.JSON_ERROR, e);
     	}
 
     	return result;
@@ -1418,12 +1467,12 @@ public class RedCapProject
      *     </ul>
      *
      * @return The number of fields imported.
-     *
-     * @throws JavaRedcapException if an error occurs.
+     *     
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public int importMetadata(String metadata, RedCapApiFormat format) throws JavaRedcapException
+    public int importMetadata(String metadata, REDCapApiFormat format) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.METADATA, errorHandler);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.METADATA, errorHandler);
 
         //#---------------------------------------
         //# Process arguments
@@ -1445,16 +1494,17 @@ public class RedCapProject
      *
      * @return A Map of project information. See REDCap API documentation
      *         for a list of the fields in the results of this method.
-     * @throws JavaRedcapException 
+     *     
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public Map<String, Object> exportProjectInfo() throws JavaRedcapException {
-    	String result = exportProjectInfo(RedCapApiFormat.JSON);
+    public Map<String, Object> exportProjectInfo() throws JavaREDCapException {
+    	String result = exportProjectInfo(REDCapApiFormat.JSON);
 
 		Map<String, Object> nativeResult = null;
 		try {
 			nativeResult = new ObjectMapper().readValue(result, new TypeReference<Map<String, Object>>(){});
 		} catch (JsonProcessingException e) {
-			throw new JavaRedcapException ("Exception processing REDCap response", ErrorHandlerInterface.JSON_ERROR, e);
+			throw new JavaREDCapException ("Exception processing REDCap response", ErrorHandlerInterface.JSON_ERROR, e);
 		}
 
 		return nativeResult;
@@ -1471,11 +1521,12 @@ public class RedCapProject
      *     </ul>
      *
      * @return A string containing the information about the project in the format requested.
-     * @throws JavaRedcapException 
+     *     
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public String exportProjectInfo(RedCapApiFormat format) throws JavaRedcapException
+    public String exportProjectInfo(REDCapApiFormat format) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams (apiToken, RedCapApiContent.PROJECT, errorHandler);
+    	REDCapApiRequest data = new REDCapApiRequest (apiToken, REDCapApiContent.PROJECT, errorHandler);
 
         //#---------------------------------------
         //# Process format
@@ -1509,20 +1560,20 @@ public class RedCapProject
      * @return The number of project info values specified that were valid,
      *     whether or not each valid value actually caused an update (i.e.,
      *     was different from the existing value before the method call).
-     *
-     * @throws JavaRedcapException if an error occurs.
+     *     
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public int importProjectInfo(Map<String, Object> projectInfo) throws JavaRedcapException {
+    public int importProjectInfo(Map<String, Object> projectInfo) throws JavaREDCapException {
     	int result = 0;
 
     	try {
     		// Convert to JSON and send it on.
     		String json = new ObjectMapper().writeValueAsString(projectInfo);
 
-    		result = importProjectInfo(json, RedCapApiFormat.JSON);
+    		result = importProjectInfo(json, REDCapApiFormat.JSON);
     	}
     	catch (JsonProcessingException e) {
-    		throw new JavaRedcapException("Exception preparing REDCap request", ErrorHandlerInterface.JSON_ERROR, e);
+    		throw new JavaREDCapException("Exception preparing REDCap request", ErrorHandlerInterface.JSON_ERROR, e);
     	}
 
     	return result;
@@ -1561,12 +1612,12 @@ public class RedCapProject
      * @return The number of project info values specified that were valid,
      *     whether or not each valid value actually caused an update (i.e.,
      *     was different from the existing value before the method call).
-     *
-     * @throws JavaRedcapException if an error occurs.
+     *     
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public int importProjectInfo(String projectInfo, RedCapApiFormat format) throws JavaRedcapException
+    public int importProjectInfo(String projectInfo, REDCapApiFormat format) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.PROJECT_SETTINGS, errorHandler);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.PROJECT_SETTINGS, errorHandler);
 
         //#---------------------------------------
         //# Process arguments
@@ -1617,7 +1668,8 @@ public class RedCapProject
      *     If set to false, files will not be exported.
      *     
      * @return The specified information for the project in XML format.
-     * @throws JavaRedcapException 
+     *     
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
     public String exportProjectXml(
         boolean returnMetadataOnly,
@@ -1628,8 +1680,8 @@ public class RedCapProject
         boolean exportSurveyFields,
         boolean exportDataAccessGroups,
         boolean exportFiles
-    ) throws JavaRedcapException {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.PROJECT_XML, errorHandler);
+    ) throws JavaREDCapException {
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.PROJECT_XML, errorHandler);
 
         //#---------------------------------------------
         //# Process the arguments
@@ -1661,11 +1713,12 @@ public class RedCapProject
      * This method is intended for use with projects that have record-autonumbering enabled.
      *
      * @return The next record name.
-     * @throws JavaRedcapException 
+     *     
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public String generateNextRecordName() throws JavaRedcapException
+    public String generateNextRecordName() throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.GENERATE_NEXT_RECORD_NAME, errorHandler);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.GENERATE_NEXT_RECORD_NAME, errorHandler);
 
         String nextRecordName = connection.call(data);
         nextRecordName = processExportResult(nextRecordName);
@@ -1681,13 +1734,6 @@ public class RedCapProject
      * Note: date ranges do not work for records that were imported at
      * the time the project was created.
      *
-     * @param format The format in which to export the records:
-     *     <ul>
-     *       <li> 'csv' - string of CSV (comma-separated values)</li>
-     *       <li> 'json' - string of JSON encoded values</li>
-     *       <li> 'xml' - string of XML encoded data</li>
-     *       <li> 'odm' - string with CDISC ODM XML format, specifically ODM version 1.3.1</li>
-     *     </ul>
      * @param type The type of records exported:
      *     <ul>
      *       <li>'flat' - [default] exports one record per row.</li>
@@ -1775,28 +1821,29 @@ public class RedCapProject
      *     of the records depends on the 'type'parameter (see above). For other
      *     formats, a string is returned that contains the records in the
      *     specified format.
-     * @throws JavaRedcapException 
+     *     
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
     public List<Map<String, Object>> exportRecords(
-    		RedCapApiType type,
+    		REDCapApiType type,
     		Set<String> recordIds,
     		Set<String> fields,
     		Set<String> forms,
     		Set<String> events,
     		String filterLogic,
-    		RedCapApiRawOrLabel rawOrLabel, // = 'raw',
-    		RedCapApiRawOrLabel rawOrLabelHeaders, // = 'raw',
+    		REDCapApiRawOrLabel rawOrLabel, // = 'raw',
+    		REDCapApiRawOrLabel rawOrLabelHeaders, // = 'raw',
     		boolean exportCheckboxLabel,
     		boolean exportSurveyFields,
     		boolean exportDataAccessGroups,
     		String dateRangeBegin,
     		String dateRangeEnd,
-    		RedCapApiCsvDelimiter csvDelimiter, // = ',',
-    		RedCapApiDecimalCharacter decimalCharacter
-    		) throws JavaRedcapException
+    		REDCapApiCsvDelimiter csvDelimiter, // = ',',
+    		REDCapApiDecimalCharacter decimalCharacter
+    		) throws JavaREDCapException
     {
     	String result = exportRecords(
-    			RedCapApiFormat.JSON,
+    			REDCapApiFormat.JSON,
     			type,
     			recordIds,
     			fields,
@@ -1818,7 +1865,7 @@ public class RedCapProject
 		try {
 			nativeResult = new ObjectMapper().readValue(result, new TypeReference<List<Map<String, Object>>>(){});
 		} catch (JsonProcessingException e) {
-			throw new JavaRedcapException ("Exception processing REDCap response", ErrorHandlerInterface.JSON_ERROR, e);
+			throw new JavaREDCapException ("Exception processing REDCap response", ErrorHandlerInterface.JSON_ERROR, e);
 		}
 
 		return nativeResult;
@@ -1924,31 +1971,32 @@ public class RedCapProject
      *     of the records depends on the 'type'parameter (see above). For other
      *     formats, a string is returned that contains the records in the
      *     specified format.
-     * @throws JavaRedcapException 
+     *     
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
     public String exportRecords(
-        RedCapApiFormat format,
-        RedCapApiType type,
+        REDCapApiFormat format,
+        REDCapApiType type,
         Set<String> recordIds,
         Set<String> fields,
         Set<String> forms,
         Set<String> events,
         String filterLogic,
-        RedCapApiRawOrLabel rawOrLabel, // = 'raw',
-        RedCapApiRawOrLabel rawOrLabelHeaders, // = 'raw',
+        REDCapApiRawOrLabel rawOrLabel, // = 'raw',
+        REDCapApiRawOrLabel rawOrLabelHeaders, // = 'raw',
         boolean exportCheckboxLabel,
         boolean exportSurveyFields,
         boolean exportDataAccessGroups,
         String dateRangeBegin,
         String dateRangeEnd,
-        RedCapApiCsvDelimiter csvDelimiter, // = ',',
-        RedCapApiDecimalCharacter decimalCharacter
-    ) throws JavaRedcapException {
-    	if (null == csvDelimiter) {csvDelimiter = RedCapApiCsvDelimiter.COMMA; }
+        REDCapApiCsvDelimiter csvDelimiter, // = ',',
+        REDCapApiDecimalCharacter decimalCharacter
+    ) throws JavaREDCapException {
+    	if (null == csvDelimiter) {csvDelimiter = REDCapApiCsvDelimiter.COMMA; }
 
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.RECORD, errorHandler);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.RECORD, errorHandler);
 
-    	data.addFormat(RedCapApiFormat.ODM);
+    	data.addFormat(REDCapApiFormat.ODM);
 
     	//#---------------------------------------
         //# Process the arguments
@@ -1971,7 +2019,7 @@ public class RedCapProject
         data.setDateRangeBegin(dateRangeBegin);
         data.setDateRangeEnd(dateRangeEnd);
 
-        if (RedCapApiFormat.CSV.equals(format)) {
+        if (REDCapApiFormat.CSV.equals(format)) {
         	data.setCsvDelimiter(csvDelimiter);
         };
 
@@ -2031,11 +2079,11 @@ public class RedCapProject
      * @param csvDelimiter specifies which delimiter separates the values in the CSV
      *         data file (for CSV format only).
      *         <ul>
-     *           <li> ',' - comman [default] </li>
-     *           <li> 'tab' </li>
-     *           <li> ';' - semi-colon </li>
-     *           <li> '|' - pipe </li>
-     *           <li> '^' - caret </li>
+     *           <li>RedCapApiCsvDelimiter.COMMA - comma [default] </li>
+     *           <li>RedCapApiCsvDelimiter.TAB </li>
+     *           <li>RedCapApiCsvDelimiter.SEMICOLON - semi-colon </li>
+     *           <li>RedCapApiCsvDelimiter.PIPE - pipe </li>
+     *           <li>RedCapApiCsvDelimiter.CARET - caret </li>
      *         </ul>
      *
      * @return mixed if 'count' was specified for 'returnContent', then an integer will
@@ -2043,28 +2091,29 @@ public class RedCapProject
      *         If 'ids' was specified, then an array of record IDs that were imported will
      *         be returned. If 'auto_ids' was specified, an array that maps newly created IDs
      *         to sent IDs will be returned.
-     * @throws JavaRedcapException 
+     *         
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
     public String importRecords(
     		String records,
-    		RedCapApiFormat format,
-    		RedCapApiType type,
-    		RedCapApiOverwriteBehavior overwriteBehavior, // = 'normal',
-    		RedCapApiDateFormat dateFormat, // = 'YMD',
-    		RedCapApiReturnContent returnContent, // = 'count',
+    		REDCapApiFormat format,
+    		REDCapApiType type,
+    		REDCapApiOverwriteBehavior overwriteBehavior, // = 'normal',
+    		REDCapApiDateFormat dateFormat, // = 'YMD',
+    		REDCapApiReturnContent returnContent, // = 'count',
     		boolean forceAutoNumber, // = false,
-    		RedCapApiCsvDelimiter csvDelimiter // = ','
-    		) throws JavaRedcapException
+    		REDCapApiCsvDelimiter csvDelimiter // = ','
+    		) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.RECORD, errorHandler);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.RECORD, errorHandler);
 
-    	data.addFormat(RedCapApiFormat.ODM);
+    	data.addFormat(REDCapApiFormat.ODM);
 
         //#---------------------------------------
         //# Process format
         //#---------------------------------------
         data.setFormat(format);
-        if (RedCapApiFormat.CSV.equals(format)) {
+        if (REDCapApiFormat.CSV.equals(format)) {
         	data.setCsvDelimiter(csvDelimiter);
         }
         data.setType(type);
@@ -2132,12 +2181,12 @@ public class RedCapProject
      *     is specified and some of the record IDs specified are
      *     not in that arm.
      *
-     * @throws JavaRedcapException
+     * @throws JavaREDCapException Thrown if an error occurs.
      */
-    public int deleteRecords(Set<String> recordIds, Integer arm) throws JavaRedcapException
+    public int deleteRecords(Set<String> recordIds, Integer arm) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.RECORD, errorHandler);
-    	data.setAction(RedCapApiAction.DELETE);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.RECORD, errorHandler);
+    	data.setAction(REDCapApiAction.DELETE);
 
     	data.setRecords(recordIds);
     	data.setArm(arm);
@@ -2160,17 +2209,18 @@ public class RedCapProject
      * 		repeating events in longitudinal studies, a blank value will be
      * 		returned for the form_name. In all cases, a blank value will be
      * 		returned for the 'custom form label' if it is not defined.
-     * @throws JavaRedcapException 
+     * 
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public List<Map<String, Object>> exportRepeatingInstrumentsAndEvents() throws JavaRedcapException
+    public List<Map<String, Object>> exportRepeatingInstrumentsAndEvents() throws JavaREDCapException
     {
-    	String result = exportRepeatingInstrumentsAndEvents(RedCapApiFormat.JSON);
+    	String result = exportRepeatingInstrumentsAndEvents(REDCapApiFormat.JSON);
 
 		List<Map<String, Object>> nativeResult = null;
 		try {
 			nativeResult = new ObjectMapper().readValue(result, new TypeReference<List<Map<String, Object>>>(){});
 		} catch (JsonProcessingException e) {
-			throw new JavaRedcapException ("Exception processing REDCap response", ErrorHandlerInterface.JSON_ERROR, e);
+			throw new JavaREDCapException ("Exception processing REDCap response", ErrorHandlerInterface.JSON_ERROR, e);
 		}
 
 		return nativeResult;
@@ -2181,10 +2231,10 @@ public class RedCapProject
      *
      * @param format The format in which to export the records:
      *     <ul>
-     *       <li> 'csv' - string of CSV (comma-separated values)</li>
-     *       <li> 'json' - string of JSON encoded values</li>
-     *       <li> 'xml' - string of XML encoded data</li>
-     *       <li> 'odm' - string with CDISC ODM XML format, specifically ODM version 1.3.1</li>
+     *       <li>REDCapApiFormat.CSV - string of CSV (comma-separated values)</li>
+     *       <li>REDCapApiFormat.JSON - string of JSON encoded values</li>
+     *       <li>REDCapApiFormat.XML - string of XML encoded data</li>
+     *       <li>REDCapApiFormat.ODM - string with CDISC ODM XML format, specifically ODM version 1.3.1</li>
      *     </ul>
      *
      * @return A string with the data in the specified format.<br>
@@ -2194,12 +2244,13 @@ public class RedCapProject
      *		repeating events in longitudinal studies, a blank value will be
      *		returned for the form_name. In all cases, a blank value will be
      *		returned for the 'custom form label' if it is not defined.
-     * @throws JavaRedcapException 
+     *
+     * @throws JavaREDCapException Thrown if an error occurs. 
      */
-    public String exportRepeatingInstrumentsAndEvents(RedCapApiFormat format) throws JavaRedcapException
+    public String exportRepeatingInstrumentsAndEvents(REDCapApiFormat format) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.REPEATING_FORMS_EVENTS, errorHandler);
-    	data.addFormat(RedCapApiFormat.ODM);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.REPEATING_FORMS_EVENTS, errorHandler);
+    	data.addFormat(REDCapApiFormat.ODM);
 
         //#---------------------------------------
         //# Process the arguments
@@ -2220,9 +2271,10 @@ public class RedCapProject
      * @param formsEvents A List of Map entries for the data to be imported.
      *
      * @return The number of repeated instruments or repeated events imported.
-     * @throws JavaRedcapException 
+     * 
+     * @throws JavaREDCapException Thrown if an error occurs. 
      */
-    public int importRepeatingInstrumentsAndEvents(List<Map<String, Object>> formsEvents) throws JavaRedcapException
+    public int importRepeatingInstrumentsAndEvents(List<Map<String, Object>> formsEvents) throws JavaREDCapException
     {
     	int result = 0;
 
@@ -2230,10 +2282,10 @@ public class RedCapProject
     		// Convert to JSON and send it on.
     		String json = new ObjectMapper().writeValueAsString(formsEvents);
 
-    		result = importRepeatingInstrumentsAndEvents(json, RedCapApiFormat.JSON);
+    		result = importRepeatingInstrumentsAndEvents(json, REDCapApiFormat.JSON);
     	}
     	catch (JsonProcessingException e) {
-    		throw new JavaRedcapException("Exception preparing REDCap request", ErrorHandlerInterface.JSON_ERROR, e);
+    		throw new JavaREDCapException("Exception preparing REDCap request", ErrorHandlerInterface.JSON_ERROR, e);
     	}
 
     	return result;
@@ -2245,17 +2297,18 @@ public class RedCapProject
      * @param formsEvents A string containing the data in the format specified.
      * @param format The format in which to export the records:
      *     <ul>
-     *       <li> 'csv' - string of CSV (comma-separated values)</li>
-     *       <li> 'json' - string of JSON encoded values</li>
-     *       <li> 'xml' - string of XML encoded data</li>
+     *       <li>REDCapApiFormat.CSV - string of CSV (comma-separated values)</li>
+     *       <li>REDCapApiFormat.JSON - string of JSON encoded values</li>
+     *       <li>REDCapApiFormat.XML - string of XML encoded data</li>
      *     </ul>
      *
      * @return The number of repeated instruments or repeated events imported.
-     * @throws JavaRedcapException 
+     * 
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public int importRepeatingInstrumentsAndEvents(String formsEvents, RedCapApiFormat format) throws JavaRedcapException
+    public int importRepeatingInstrumentsAndEvents(String formsEvents, REDCapApiFormat format) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.REPEATING_FORMS_EVENTS, errorHandler);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.REPEATING_FORMS_EVENTS, errorHandler);
 
         //#---------------------------------------
         //# Process the arguments
@@ -2282,11 +2335,12 @@ public class RedCapProject
      * Gets the REDCap version number of the REDCap instance being used by the project.
      *
      * @return string the REDCap version number of the REDCap instance being used by the project.
-     * @throws JavaRedcapException 
+     * 
+     * @throws JavaREDCapException Thrown if an error occurs. 
      */
-    public String exportRedcapVersion() throws JavaRedcapException
+    public String exportRedcapVersion() throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.VERSION, errorHandler);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.VERSION, errorHandler);
 
         String redcapVersion = connection.call(data);
         redcapVersion = processExportResult(redcapVersion);
@@ -2294,28 +2348,26 @@ public class RedCapProject
         return redcapVersion;
     }
 
-    
-
     /**
      * Exports the records produced by the specified report.
      *
      * @param reportId An number of the report to use.
      * @param format Output data format.
      *     <ul>
-     *       <li> 'csv' - string of CSV (comma-separated values)</li>
-     *       <li> 'json' - string of JSON encoded values</li>
-     *       <li> 'xml' - string of XML encoded data</li>
+     *       <li>REDCapApiFormat.CSV - string of CSV (comma-separated values)</li>
+     *       <li>REDCapApiFormat.JSON - string of JSON encoded values</li>
+     *       <li>REDCapApiFormat.XML - string of XML encoded data</li>
      *     </ul>
      * @param rawOrLabel Indicates what should be exported for options of multiple choice fields:
      *     <ul>
-     *       <li> 'raw' - [default] export the raw coded values</li>
-     *       <li> 'label' - export the labels</li>
+     *       <li>REDCapApiRawOrLabel.RAW - [default] export the raw coded values</li>
+     *       <li>REDCapApiRawOrLabel.LABEL - export the labels</li>
      *     </ul>
      * @param rawOrLabelHeaders When exporting with 'csv' format 'flat' type, indicates what format
      *         should be used for the CSV headers:
      *         <ul>
-     *           <li> 'raw' - [default] export the variable/field names</li>
-     *           <li> 'label' - export the field labels</li>
+     *           <li>REDCapApiRawOrLabel.RAW - [default] export the variable/field names</li>
+     *           <li>REDCapApiRawOrLabel.LABEL - export the field labels</li>
      *         </ul>
      * @param exportCheckboxLabel Specifies the format for checkbox fields for the case where
      *         format = 'csv', rawOrLabel = true, and type = 'flat'. For other cases this
@@ -2331,34 +2383,35 @@ public class RedCapProject
      * @param csvDelimiter Specifies what delimiter is used to separate
      *     values in a CSV file (for CSV format only). Options are:
      *     <ul>
-     *       <li> ',' - comma, this is the default </li>
-     *       <li> 'tab' - tab </li>
-     *       <li> ';' - semi-colon</li>
-     *       <li> '|' - pipe</li>
-     *       <li> '^' - caret</li>
+     *       <li>RedCapApiCsvDelimiter.COMMA - comma, this is the default </li>
+     *       <li>RedCapApiCsvDelimiter.TAB - tab </li>
+     *       <li>RedCapApiCsvDelimiter.SEMICOLON - semi-colon</li>
+     *       <li>RedCapApiCsvDelimiter.PIPE - pipe</li>
+     *       <li>RedCapApiCsvDelimiter.CARET - caret</li>
      *     </ul>
      * @param decimalCharacter Specifies what decimal format to apply to
      *		numeric values being returned. Options are:
      *     <ul>
-     *       <li> '.' - dot/full stop </li>
-     *       <li> ',' - comma </li>
-     *       <li> null - numbers will be exported using the fields' native decimal format</li>
+     *       <li>REDCapApiDecimalCharacter.PERIOD - dot/full stop </li>
+     *       <li>REDCapApiDecimalCharacter.COMMA - comma </li>
+     *       <li>null - numbers will be exported using the fields' native decimal format</li>
      *     </ul>
      *
      * @return A string containing the report in the specified format.
-     * @throws JavaRedcapException 
+     * 
+     * @throws JavaREDCapException Thrown if an error occurs. 
      */
     public String exportReports(
     		Integer reportId,
-    		RedCapApiFormat format,
-    		RedCapApiRawOrLabel rawOrLabel, // = 'raw',
-    		RedCapApiRawOrLabel rawOrLabelHeaders, // = 'raw',
+    		REDCapApiFormat format,
+    		REDCapApiRawOrLabel rawOrLabel, // = 'raw',
+    		REDCapApiRawOrLabel rawOrLabelHeaders, // = 'raw',
     		boolean exportCheckboxLabel, // = false,
-    		RedCapApiCsvDelimiter csvDelimiter, // = ',',
-    		RedCapApiDecimalCharacter decimalCharacter
-    		) throws JavaRedcapException
+    		REDCapApiCsvDelimiter csvDelimiter, // = ',',
+    		REDCapApiDecimalCharacter decimalCharacter
+    		) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.REPORT, errorHandler);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.REPORT, errorHandler);
 
         //#------------------------------------------------
         //# Process arguments
@@ -2370,7 +2423,7 @@ public class RedCapProject
         data.setRawOrLabelHeaders(rawOrLabelHeaders);
         data.setExportCheckboxLabel(exportCheckboxLabel);
 
-        if (RedCapApiFormat.CSV.equals(format)) {
+        if (REDCapApiFormat.CSV.equals(format)) {
         	data.setCsvDelimiter(csvDelimiter);
         }
         data.setDecimalCharacter(decimalCharacter);
@@ -2395,11 +2448,12 @@ public class RedCapProject
      * 		the instance of the form to return a link for.
      *
      * @return A survey link.
-     * @throws JavaRedcapException 
+     * 
+     * @throws JavaREDCapException Thrown if an error occurs. 
      */
-    public String exportSurveyLink(String recordId, String form, String event, Integer repeatInstance) throws JavaRedcapException
+    public String exportSurveyLink(String recordId, String form, String event, Integer repeatInstance) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.SURVEY_LINK, errorHandler);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.SURVEY_LINK, errorHandler);
 
         //#----------------------------------------------
         //# Process arguments
@@ -2424,17 +2478,18 @@ public class RedCapProject
      *     exported if a longitudial project.
      *
      * @return A List of Map entries.
-     * @throws JavaRedcapException 
+     * 
+     * @throws JavaREDCapException Thrown if an error occurs. 
      */
-    public List<Map<String, Object>> exportSurveyParticipants(String form, String event) throws JavaRedcapException
+    public List<Map<String, Object>> exportSurveyParticipants(String form, String event) throws JavaREDCapException
     {
-    	String result = exportSurveyParticipants(form, RedCapApiFormat.JSON, event);
+    	String result = exportSurveyParticipants(form, REDCapApiFormat.JSON, event);
 
 		List<Map<String, Object>> nativeResult = null;
 		try {
 			nativeResult = new ObjectMapper().readValue(result, new TypeReference<List<Map<String, Object>>>(){});
 		} catch (JsonProcessingException e) {
-			throw new JavaRedcapException ("Exception processing REDCap response", ErrorHandlerInterface.JSON_ERROR, e);
+			throw new JavaREDCapException ("Exception processing REDCap response", ErrorHandlerInterface.JSON_ERROR, e);
 		}
 
 		return nativeResult;
@@ -2447,19 +2502,20 @@ public class RedCapProject
      * @param form The form for which the participants should be exported.
      * @param format Output data format.
      *     <ul>
-     *       <li> 'csv' - string of CSV (comma-separated values)</li>
-     *       <li> 'json' - string of JSON encoded values</li>
-     *       <li> 'xml' - string of XML encoded data</li>
+     *       <li>REDCapApiFormat.CSV - string of CSV (comma-separated values)</li>
+     *       <li>REDCapApiFormat.JSON - string of JSON encoded values</li>
+     *       <li>REDCapApiFormat.XML - string of XML encoded data</li>
      *     </ul>
      * @param event The event name for which survey participants should be
      *     exported if a longitudial project.
      *
      * @return A string containing the exported data in the specified format.
-     * @throws JavaRedcapException 
+     * 
+     * @throws JavaREDCapException Thrown if an error occurs.
      */
-    public String exportSurveyParticipants(String form, RedCapApiFormat format, String event) throws JavaRedcapException
+    public String exportSurveyParticipants(String form, REDCapApiFormat format, String event) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.PARTICIPANT_LIST, errorHandler);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.PARTICIPANT_LIST, errorHandler);
 
         //#----------------------------------------------
         //# Process arguments
@@ -2477,14 +2533,15 @@ public class RedCapProject
     /**
      * Exports the survey queue link for the specified record ID.
      *
-     * @param string $recordId the record ID of the survey queue link that should be returned.
+     * @param recordId the record ID of the survey queue link that should be returned.
      *
      * @return string survey queue link.
-     * @throws JavaRedcapException 
+     * 
+     * @throws JavaREDCapException Thrown if an error occurs.
      */
-    public String exportSurveyQueueLink(String recordId) throws JavaRedcapException
+    public String exportSurveyQueueLink(String recordId) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.SURVEY_QUEUE_LINK, errorHandler);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.SURVEY_QUEUE_LINK, errorHandler);
 
         //#----------------------------------------------
         //# Process arguments
@@ -2507,11 +2564,12 @@ public class RedCapProject
      * @param repeatInstance The repeat instance (if any) for the survey to return to.
      * 
      * @return The survey return code.
-     * @throws JavaRedcapException 
+     * 
+     * @throws JavaREDCapException Thrown if an error occurs. 
      */
-    public String exportSurveyReturnCode(String recordId, String form, String event, Integer repeatInstance) throws JavaRedcapException
+    public String exportSurveyReturnCode(String recordId, String form, String event, Integer repeatInstance) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.SURVEY_RETURN_CODE, errorHandler);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.SURVEY_RETURN_CODE, errorHandler);
 
         //#----------------------------------------------
         //# Process arguments
@@ -2532,17 +2590,18 @@ public class RedCapProject
      * Exports the users of the project.
      *
      * @return A List of Map entries for each user.
-     * @throws JavaRedcapException 
+     * 
+     * @throws JavaREDCapException Thrown if an error occurs 
      */
-    public List<Map<String, Object>> exportUsers() throws JavaRedcapException
+    public List<Map<String, Object>> exportUsers() throws JavaREDCapException
     {
-    	String result = exportUsers(RedCapApiFormat.JSON);
+    	String result = exportUsers(REDCapApiFormat.JSON);
 
 		List<Map<String, Object>> nativeResult = null;
 		try {
 			nativeResult = new ObjectMapper().readValue(result, new TypeReference<List<Map<String, Object>>>(){});
 		} catch (JsonProcessingException e) {
-			throw new JavaRedcapException ("Exception processing REDCap response", ErrorHandlerInterface.JSON_ERROR, e);
+			throw new JavaREDCapException ("Exception processing REDCap response", ErrorHandlerInterface.JSON_ERROR, e);
 		}
 
 		return nativeResult;
@@ -2553,17 +2612,18 @@ public class RedCapProject
      *
      * @param format Output data format.
      *     <ul>
-     *       <li> 'csv' - string of CSV (comma-separated values)</li>
-     *       <li> 'json' - string of JSON encoded values</li>
-     *       <li> 'xml' - string of XML encoded data</li>
+     *       <li>REDCapApiFormat.CSV - string of CSV (comma-separated values)</li>
+     *       <li>REDCapApiFormat.JSON - string of JSON encoded values</li>
+     *       <li>REDCapApiFormat.XML - string of XML encoded data</li>
      *     </ul>
      *
      * @return A string containing the user information in the requested format.
-     * @throws JavaRedcapException 
+     * 
+     * @throws JavaREDCapException Thrown if an error occurs.
      */
-    public String exportUsers(RedCapApiFormat format) throws JavaRedcapException
+    public String exportUsers(REDCapApiFormat format) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.USER, errorHandler);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.USER, errorHandler);
 
     	data.setFormat(format);
 
@@ -2608,12 +2668,13 @@ public class RedCapProject
      * See the REDCap API documentation for more information, or the results
      * of the exportUsers method to see what the data looks like for the current users.
      *
-     * @param A List of Map entries containing the field names and values.
+     * @param users A List of Map entries containing the field names and values.
      *
      * @return The number of users added or updated.
-     * @throws JavaRedcapException 
+     * 
+     * @throws JavaREDCapException Thrown if an error occurs. 
      */
-    public int importUsers(List<Map<String, Object>> users) throws JavaRedcapException
+    public int importUsers(List<Map<String, Object>> users) throws JavaREDCapException
     {
     	int result = 0;
 
@@ -2621,10 +2682,10 @@ public class RedCapProject
     		// Convert to JSON and send it on.
     		String json = new ObjectMapper().writeValueAsString(users);
 
-    		result = importUsers(json, RedCapApiFormat.JSON);
+    		result = importUsers(json, REDCapApiFormat.JSON);
     	}
     	catch (JsonProcessingException e) {
-    		throw new JavaRedcapException("Expection preparing REDCap request", ErrorHandlerInterface.JSON_ERROR, e);
+    		throw new JavaREDCapException("Expection preparing REDCap request", ErrorHandlerInterface.JSON_ERROR, e);
     	}
 
     	return result;
@@ -2662,20 +2723,21 @@ public class RedCapProject
      * See the REDCap API documentation for more information, or the results
      * of the exportUsers method to see what the data looks like for the current users.
      *
-     * @param A string containing the user data in the format specified.
-     * @param The format of the input data.
+     * @param users A string containing the user data in the format specified.
+     * @param format The format of the input data.
      *     <ul>
-     *       <li> 'csv' - string of CSV (comma-separated values)</li>
-     *       <li> 'json' - string of JSON encoded values</li>
-     *       <li> 'xml' - string of XML encoded data</li>
+     *       <li>REDCapApiFormat.CSV - string of CSV (comma-separated values)</li>
+     *       <li>REDCapApiFormat.JSON - string of JSON encoded values</li>
+     *       <li>REDCapApiFormat.XML - string of XML encoded data</li>
      *     </ul>
      *
      * @return The number of users added or updated.
-     * @throws JavaRedcapException 
+     * 
+     * @throws JavaREDCapException Thrown if an error occurs. 
      */
-    public int importUsers(String users, RedCapApiFormat format) throws JavaRedcapException
+    public int importUsers(String users, REDCapApiFormat format) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.USER, errorHandler);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.USER, errorHandler);
 
         //#----------------------------------------------------
         //# Process arguments
@@ -2693,46 +2755,48 @@ public class RedCapProject
     }
 
     /**
-    * Exports the Data Access Groups for a project.
-    *
-    * @return A list of Map entries for each DAG with the map having the
-    * 		following keys:
-    *     <ul>
-    *       <li>'data_access_group_name'</li>
-            <li>'unique_group_name'</li>
-    *     </ul>
-     * @throws JavaRedcapException 
-    */
-    public List<Map<String, String>> exportDags() throws JavaRedcapException
+     * Exports the Data Access Groups for a project.
+     *
+     * @return A list of Map entries for each DAG with the map having the
+     * 		following keys:
+     *     <ul>
+     *       <li>'data_access_group_name'</li>
+     *      <li>'unique_group_name'</li>
+     *     </ul>
+     *     
+     * @throws JavaREDCapException Thrown if an error occurs. 
+     */
+    public List<Map<String, String>> exportDags() throws JavaREDCapException
     {
-    	String result = exportDags(RedCapApiFormat.JSON);
+    	String result = exportDags(REDCapApiFormat.JSON);
 
 		List<Map<String, String>> nativeResult = null;
 		try {
 			nativeResult = new ObjectMapper().readValue(result, new TypeReference<List<Map<String, String>>>(){});
 		} catch (JsonProcessingException e) {
-			throw new JavaRedcapException ("Exception processing REDCap response", ErrorHandlerInterface.JSON_ERROR, e);
+			throw new JavaREDCapException ("Exception processing REDCap response", ErrorHandlerInterface.JSON_ERROR, e);
 		}
 
 		return nativeResult;
     }
 
     /**
-    * Exports the Data Access Groups for a project.
-    *
-    * @param format The format used to export the data.
-    *     <ul>
-    *       <li> 'csv' - string of CSV (comma-separated values)</li>
-    *       <li> 'json' - string of JSON encoded values</li>
-    *       <li> 'xml' - string of XML encoded data</li>
-    *     </ul>
-    *
-    * @return A string containing the DAG information in the requested format.
-     * @throws JavaRedcapException 
-    */
-    public String exportDags(RedCapApiFormat format) throws JavaRedcapException
+     * Exports the Data Access Groups for a project.
+     *
+     * @param format The format used to export the data.
+     *     <ul>
+     *       <li>REDCapApiFormat.CSV - string of CSV (comma-separated values)</li>
+     *       <li>REDCapApiFormat.JSON - string of JSON encoded values</li>
+     *       <li>REDCapApiFormat.XML - string of XML encoded data</li>
+     *     </ul>
+     *
+     * @return A string containing the DAG information in the requested format.
+     * 
+     * @throws JavaREDCapException Thrown if an error occurs.
+     */
+    public String exportDags(REDCapApiFormat format) throws JavaREDCapException
     {
-	   RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.DAG, errorHandler);
+	   REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.DAG, errorHandler);
 
        data.setFormat(format);
 
@@ -2743,19 +2807,19 @@ public class RedCapProject
    }
 
     /**
-    * Imports the specified dags into the project. Allows import of new DAGs
-    * or update of the data_access_group_name of any existing DAGs. DAGs can
-    * be renamed by changing the data_access_group_name. A DAG can be created
-    * by providing group name value with unique group name set to blank.
-    *
-    * @param dags A list of Map entries of the DAGs to import. The field names
-    * 		(keys) are: data_access_group_name, unique_group_name
-    *
-    * @return The number of DAGs imported.
-    *     
-    * @throws JavaRedcapException if an error occurs.
-    */
-    public int importDags(List<Map<String, String>> dags) throws JavaRedcapException
+     * Imports the specified dags into the project. Allows import of new DAGs
+	 * or update of the data_access_group_name of any existing DAGs. DAGs can
+	 * be renamed by changing the data_access_group_name. A DAG can be created
+	 * by providing group name value with unique group name set to blank.
+	 *
+	 * @param dags A list of Map entries of the DAGs to import. The field names
+	 * 		(keys) are: data_access_group_name, unique_group_name
+	 *
+	 * @return The number of DAGs imported.
+	 *     
+	 * @throws JavaREDCapException if an error occurs.
+	 */
+    public int importDags(List<Map<String, String>> dags) throws JavaREDCapException
     {
     	int result = 0;
 
@@ -2763,17 +2827,17 @@ public class RedCapProject
     		// Convert to JSON and send it on.
     		String json = new ObjectMapper().writeValueAsString(dags);
 
-    		result = importDags(json, RedCapApiFormat.JSON);
+    		result = importDags(json, REDCapApiFormat.JSON);
     	}
     	catch (JsonProcessingException e) {
-    		throw new JavaRedcapException("Exception preparing REDCap request", ErrorHandlerInterface.JSON_ERROR, e);
+    		throw new JavaREDCapException("Exception preparing REDCap request", ErrorHandlerInterface.JSON_ERROR, e);
     	}
 
     	return result;
     }
 
     /**
-    * Imports the specified dags into the project. Allows import of new DAGs
+    * Imports the specified DAGs into the project. Allows import of new DAGs
     * or update of the data_access_group_name of any existing DAGs. DAGs can
     * be renamed by changing the data_access_group_name. A DAG can be created
     * by providing group name value with unique group name set to blank.
@@ -2782,19 +2846,19 @@ public class RedCapProject
     * 		(keys) are: data_access_group_name, unique_group_name
     * @param format The format for the import.
     *     <ul>
-    *       <li> 'csv' - string of CSV (comma-separated values)</li>
-    *       <li> 'json' - string of JSON encoded values</li>
-    *       <li> 'xml' - string of XML encoded data</li>
+    *       <li>REDCapApiFormat.CSV - string of CSV (comma-separated values)</li>
+    *       <li>REDCapApiFormat.JSON - string of JSON encoded values</li>
+    *       <li>REDCapApiFormat.XML - string of XML encoded data</li>
     *     </ul>
     *
     * @return The number of DAGs imported.
     *     
-    * @throws JavaRedcapException if an error occurs.
+    * @throws JavaREDCapException if an error occurs.
     */
-    public int importDags(String dags, RedCapApiFormat format) throws JavaRedcapException
+    public int importDags(String dags, REDCapApiFormat format) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.DAG, errorHandler);
-    	data.setAction(RedCapApiAction.IMPORT);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.DAG, errorHandler);
+    	data.setAction(REDCapApiAction.IMPORT);
 
     	//#---------------------------------------
     	//# Process arguments
@@ -2810,18 +2874,18 @@ public class RedCapProject
     }
 
     /**
-    * Deletes the specified dags from the project.
+    * Deletes the specified DAGs from the project.
     *
     * @param dags A set of the unique_group_names to delete.
     *
     * @return The number of DAGs imported.
     * 
-    * @throws JavaRedcapException if an error occurs.
+    * @throws JavaREDCapException if an error occurs.
     */
-    public int deleteDags(Set<String> dags) throws JavaRedcapException
+    public int deleteDags(Set<String> dags) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.DAG, errorHandler);
-    	data.setAction(RedCapApiAction.DELETE);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.DAG, errorHandler);
+    	data.setAction(REDCapApiAction.DELETE);
     	data.setDags(dags, true);
 
     	String result = connection.call(data);
@@ -2838,17 +2902,18 @@ public class RedCapProject
      *       <li>'username'</li>
      *       <li>'redcap_data_access_group'</li>
      *     </ul>
-     * @throws JavaRedcapException 
+     *
+     * @throws JavaREDCapException Thrown if an error occurs.
      */
-    public List<Map<String, String>> exportUserDagAssignment() throws JavaRedcapException
+    public List<Map<String, String>> exportUserDagAssignment() throws JavaREDCapException
     {
-    	String result = exportUserDagAssignment(RedCapApiFormat.JSON);
+    	String result = exportUserDagAssignment(REDCapApiFormat.JSON);
 
 		List<Map<String, String>> nativeResult = null;
 		try {
 			nativeResult = new ObjectMapper().readValue(result, new TypeReference<List<Map<String, String>>>(){});
 		} catch (JsonProcessingException e) {
-			throw new JavaRedcapException ("Exception processing REDCap response", ErrorHandlerInterface.JSON_ERROR, e);
+			throw new JavaREDCapException ("Exception processing REDCap response", ErrorHandlerInterface.JSON_ERROR, e);
 		}
 
 		return nativeResult;
@@ -2859,17 +2924,18 @@ public class RedCapProject
     *
     * @param format The format used to export the data.
     *     <ul>
-    *       <li> 'csv' - string of CSV (comma-separated values)</li>
-    *       <li> 'json' - string of JSON encoded values</li>
-    *       <li> 'xml' - string of XML encoded data</li>
+    *       <li>REDCapApiFormat.CSV - string of CSV (comma-separated values)</li>
+    *       <li>REDCapApiFormat.JSON - string of JSON encoded values</li>
+    *       <li>REDCapApiFormat.XML - string of XML encoded data</li>
     *     </ul>
     *
     * @return A string with the mappings in the format requested.
-     * @throws JavaRedcapException 
+    * 
+    * @throws JavaREDCapException Thrown if an error occurs
     */
-    public String exportUserDagAssignment(RedCapApiFormat format) throws JavaRedcapException
+    public String exportUserDagAssignment(REDCapApiFormat format) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.USER_DAG_MAPPING, errorHandler);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.USER_DAG_MAPPING, errorHandler);
     	data.setFormat(format);
 
     	String dagAssignments = connection.call(data);
@@ -2891,9 +2957,9 @@ public class RedCapProject
      *
      * @return The number of DAGs imported.
      *
-     * @throws JavaRedcapException if an error occurs.
+     * @throws JavaREDCapException Thrown if an error occurs.
      */ 
-    public int importUserDagAssignment(List<Map<String, String>> dagAssignments) throws JavaRedcapException
+    public int importUserDagAssignment(List<Map<String, String>> dagAssignments) throws JavaREDCapException
     {
     	int result = 0;
 
@@ -2901,10 +2967,10 @@ public class RedCapProject
     		// Convert to JSON and send it on.
     		String json = new ObjectMapper().writeValueAsString(dagAssignments);
 
-    		result = importUserDagAssignment(json, RedCapApiFormat.JSON);
+    		result = importUserDagAssignment(json, REDCapApiFormat.JSON);
     	}
     	catch (JsonProcessingException e) {
-    		throw new JavaRedcapException("Exception preparing REDCap request", ErrorHandlerInterface.JSON_ERROR, e);
+    		throw new JavaREDCapException("Exception preparing REDCap request", ErrorHandlerInterface.JSON_ERROR, e);
     	}
 
     	return result;
@@ -2922,19 +2988,19 @@ public class RedCapProject
      * The field names (keys) used in both cases are: username, recap_data_access_group
      * @param format The format for the export.
      *     <ul>
-     *       <li> 'csv' - string of CSV (comma-separated values)</li>
-     *       <li> 'json' - string of JSON encoded values</li>
-     *       <li> 'xml' - string of XML encoded data</li>
+     *       <li>REDCapApiFormat.CSV - string of CSV (comma-separated values)</li>
+     *       <li>REDCapApiFormat.JSON - string of JSON encoded values</li>
+     *       <li>REDCapApiFormat.XML - string of XML encoded data</li>
      *     </ul>
      *
      * @return The number of DAGs imported.
      *
-     * @throws JavaRedcapException if an error occurs.
+     * @throws JavaREDCapException Thrown if an error occurs.
      */
-    public int importUserDagAssignment(String dagAssignments, RedCapApiFormat format) throws JavaRedcapException
+    public int importUserDagAssignment(String dagAssignments, REDCapApiFormat format) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.USER_DAG_MAPPING, errorHandler);
-    	data.setAction(RedCapApiAction.IMPORT);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.USER_DAG_MAPPING, errorHandler);
+    	data.setAction(REDCapApiAction.IMPORT);
 
     	//#---------------------------------------
     	//# Process arguments
@@ -2954,50 +3020,50 @@ public class RedCapProject
      * including data exports, data changes, project metadata changes,
      * modification of user rights, etc.
      *
-     * @param string $format the format for the export.
+     * @param format the format for the export.
      *     <ul>
-     *       <li> 'php' - [default] array of maps of values</li>
-     *       <li> 'csv' - string of CSV (comma-separated values)</li>
-     *       <li> 'json' - string of JSON encoded values</li>
-     *       <li> 'xml' - string of XML encoded data</li>
+     *       <li>REDCapApiFormat.CSV - string of CSV (comma-separated values)</li>
+     *       <li>REDCapApiFormat.JSON - string of JSON encoded values</li>
+     *       <li>REDCapApiFormat.XML' - string of XML encoded data</li>
      *     </ul>
-     * @param string $logType type of logging to return. Defaults to NULL
+     * @param logType type of logging to return. Defaults to NULL
      *     to return all types.
-     * @param string $username returns only the events belong to specific
+     * @param username returns only the events belong to specific
      *     username. If not specified, it will assume all users.
-     * @param string $recordId the record ID for the file to be exported.
-     * @param string $dag returns only the events belong to specific DAG
+     * @param recordId the record ID for the file to be exported.
+     * @param dag returns only the events belong to specific DAG
      *     (referring to group_id), provide a dag. If not specified, it will
      *     assume all dags.
-     * @param string $beginTime specifies to return only those records
+     * @param beginTime specifies to return only those records
      *     *after* a given date/time, provide a timestamp in the format
      *     YYYY-MM-DD HH:MM (e.g., '2017-01-01 17:00' for January 1, 2017
      *     at 5:00 PM server time). If not specified, it will assume no
      *     begin time.
-     * @param string $endTime returns only records that have been logged
+     * @param endTime returns only records that have been logged
      *     *before* a given date/time, provide a timestamp in the format
      *     YYYY-MM-DD HH:MM (e.g., '2017-01-01 17:00' for January 1, 2017
      *     at 5:00 PM server time). If not specified, it will use the current
      *     server time.
-     * @throws PhpCapException if an error occurs.
      *
      * @return array information, filtered by event (logtype), listing all
-     *     changes made to thise project. Each element of the array is an
+     *     changes made to this project. Each element of the array is an
      *     associative array with the following keys:
      *     'timestamp', 'username', 'action', 'details'
-     * @throws JavaRedcapException 
+     *     
+     * @throws JavaREDCapException Thrown if there is an issue with a
+     * 		parameter or a problem communicating with REDCap.
      */
     public String exportLogging(
-    		RedCapApiFormat format,
-    		RedCapApiLogType logType,
+    		REDCapApiFormat format,
+    		REDCapApiLogType logType,
     		String username,
     		String recordId,
     		String dag,
     		String beginTime,
     		String endTime
-    		) throws JavaRedcapException
+    		) throws JavaREDCapException
     {
-    	RedCapApiParams data = new RedCapApiParams(apiToken, RedCapApiContent.LOG, errorHandler);
+    	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.LOG, errorHandler);
 
     	//#---------------------------------------
     	//# Process arguments
@@ -3018,6 +3084,8 @@ public class RedCapProject
 
     /**
      * Gets the JavaRedcap version number.
+     * 
+     * @return The version of JavaRedcap 
      */
     public String getJavaRedcapVersion()
     {
@@ -3035,7 +3103,7 @@ public class RedCapProject
      * # Get all the record IDs of the project in 10 batches
      * List&lt;Set&lt;String&gt;&gt;&gt; recordIdBatches = project.getRecordIdBatches(10, null, null);
      * for (Set&lt;String&gt; recordIdBatch : recordIdBatches) {
-     *     List&lt;Map&lt;String, Object&gt;&gt; records = project.exportRecords(RedCapApiType.FLAT, recordIdBatch, ...);
+     *     List&lt;Map&lt;String, Object&gt;&gt; records = project.exportRecords(REDCapApiType.FLAT, recordIdBatch, ...);
      *     ...
      * }
      * ...
@@ -3056,9 +3124,11 @@ public class RedCapProject
      * @return A list of Sets record IDs, where each record ID set is
      * 		considered to be a batch. Each batch can be used as the value
      *     for the records IDs parameter for an export records method.
-     * @throws JavaRedcapException 
+     *     
+     * @throws JavaREDCapException Thrown if there is an issue with a
+     * 		parameter or a problem communicating with REDCap.
      */
-    public List<Set<String>> getRecordIdBatches(Integer batchSize, String filterLogic, String recordIdFieldName) throws JavaRedcapException
+    public List<Set<String>> getRecordIdBatches(Integer batchSize, String filterLogic, String recordIdFieldName) throws JavaREDCapException
     {
     	List<Set<String>> recordIdBatches = new LinkedList<Set<String>>();
 
@@ -3082,7 +3152,7 @@ public class RedCapProject
         }
 
         List<Map<String, Object>> records = exportRecords(
-        		RedCapApiType.FLAT,
+        		REDCapApiType.FLAT,
         		null,
         		new HashSet<>(Arrays.asList(recordIdFieldName)),
         		null,
@@ -3127,9 +3197,11 @@ public class RedCapProject
      * Gets the record ID field name for the project.
      *
      * @return string the field name of the record ID field of the project.
-     * @throws JavaRedcapException 
+     * 
+     * @throws JavaREDCapException Thrown if there is an issue communicating
+     * 		with REDCap.
      */
-    public String getRecordIdFieldName() throws JavaRedcapException
+    public String getRecordIdFieldName() throws JavaREDCapException
     {
     	List<Map<String, Object>> metadata = exportMetadata(null, null);
 
@@ -3157,7 +3229,7 @@ public class RedCapProject
      *
      * @return The underlying REDCap API connection being used by the project.
      */
-    public RedCapApiConnectionInterface getConnection()
+    public REDCapApiConnectionInterface getConnection()
     {
         return connection;
     }
@@ -3166,9 +3238,10 @@ public class RedCapProject
      * Sets the connection used for calling the REDCap API.
      *
      * @param connection The connection to use for calls to the REDCap API.
-     * @throws JavaRedcapException 
+     * 
+     * @throws JavaREDCapException Thrown if the connection provided is null.
      */
-    public void setConnection(RedCapApiConnectionInterface connection) throws JavaRedcapException
+    public void setConnection(REDCapApiConnectionInterface connection) throws JavaREDCapException
     {
         if (null == connection) {
         	errorHandler.throwException(
@@ -3191,12 +3264,12 @@ public class RedCapProject
     }
 
     /**
-     * Sets the error handler used by the project.
+     * Sets the error handler to be used by the project.
      *
-     * @param errorHandler The error handler to use.
-     * @throws JavaRedcapException 
+     * @param errorHandler The error handler to use. If null the default
+     * 		{@link ErrorHandler} will be used.
      */
-    public ErrorHandlerInterface setErrorHandler(ErrorHandlerInterface errorHandler) throws JavaRedcapException
+    public void setErrorHandler(ErrorHandlerInterface errorHandler)
     {
         if (null == errorHandler) {
             // Set errorHandler to default
@@ -3204,8 +3277,6 @@ public class RedCapProject
         }
         
         this.errorHandler = errorHandler;
-
-        return this.errorHandler;
     }
 
     /**
@@ -3218,9 +3289,9 @@ public class RedCapProject
      * @param result A result returned from the REDCap API, which should be
      * 		for a non-export method.
      */
-    protected void checkForRedcapError(String result) throws JavaRedcapException
+    protected void checkForRedcapError(String result) throws JavaREDCapException
     {
-    	Pattern pattern = Pattern.compile(RedCapProject.JSON_RESULT_ERROR_PATTERN);
+    	Pattern pattern = Pattern.compile(REDCapProject.JSON_RESULT_ERROR_PATTERN);
     	Matcher matcher = pattern.matcher(result);
 
     	if (matcher.matches()) {
@@ -3244,7 +3315,7 @@ public class RedCapProject
      * @param result A result returned from the REDCap API, which should be
      * 		for a non-export method.
      */
-    protected void processNonExportResult(String result) throws JavaRedcapException
+    protected void processNonExportResult(String result) throws JavaREDCapException
     {
     	checkForRedcapError(result);
     }
@@ -3252,19 +3323,18 @@ public class RedCapProject
     /**
      * Processes an export result from the REDCap API.
      *
-     * @param result
-     * @param format
+     * @param result The response from REDCap
      * 
-     * @throws JavaRedcapException
+     * @throws JavaREDCapException Thrown if the response contains a error from REDCap.
      */
-    protected String processExportResult(String result) throws JavaRedcapException
+    protected String processExportResult(String result) throws JavaREDCapException
     {
     	checkForRedcapError(result);
 
         return result;
     }
 
-    protected String processImportDataArgument(String data, String dataName, RedCapApiFormat format) throws JavaRedcapException
+    protected String processImportDataArgument(String data, String dataName, REDCapApiFormat format) throws JavaREDCapException
     {
         if (null == data) {
         	errorHandler.throwException(
@@ -3277,7 +3347,7 @@ public class RedCapProject
     }
 
 /*    
-    protected String processImportDataArgument(Map<String, Object> data, String dataName, RedCapApiFormat format) throws JavaRedcapException
+    protected String processImportDataArgument(Map<String, Object> data, String dataName, REDCapApiFormat format) throws JavaRedcapException
     {
     	if (null == data || data.isEmpty()) {
         	errorHandler.throwException(
@@ -4135,7 +4205,7 @@ public class RedCapProject
     }
 */    
 
-    private void writeStringToFile(String output, String filename) throws JavaRedcapException 
+    private void writeStringToFile(String output, String filename) throws JavaREDCapException 
     {
     	try {
 	    	Writer fw = new FileWriter(filename);
@@ -4147,7 +4217,7 @@ public class RedCapProject
 	    	}
     	}
     	catch (IOException ioe) {
-    		throw new JavaRedcapException("Output file not available.", ErrorHandlerInterface.OUTPUT_FILE_ERROR, ioe);
+    		throw new JavaREDCapException("Output file not available.", ErrorHandlerInterface.OUTPUT_FILE_ERROR, ioe);
     	}
     }
 }

@@ -18,19 +18,19 @@ public class ErrorHandler
 {
 
 	@Override
-	public void throwException(String message, int code) throws JavaRedcapException {
-		throw new JavaRedcapException(message, code);
+	public void throwException(String message, int code) throws JavaREDCapException {
+		throw new JavaREDCapException(message, code);
 	}
 
 	@Override
-	public void throwException(String message, int code, Throwable previousException) throws JavaRedcapException {
-		throw new JavaRedcapException(message, code, previousException);
+	public void throwException(String message, int code, Throwable previousException) throws JavaREDCapException {
+		throw new JavaREDCapException(message, code, previousException);
 	}
 
 	@Override
 	public void throwException(String message, int code, int connectionErrorNumber, int httpStatusCode,
-			Throwable previousException) throws JavaRedcapException {
-		throw new JavaRedcapException(message, code, connectionErrorNumber, httpStatusCode, previousException);
+			Throwable previousException) throws JavaREDCapException {
+		throw new JavaREDCapException(message, code, connectionErrorNumber, httpStatusCode, previousException);
 	}
 	
 	@Override

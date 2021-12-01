@@ -29,25 +29,27 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
-import edu.utah.hsir.javaRedcap.enums.RedCapApiContent;
-import edu.utah.hsir.javaRedcap.enums.RedCapApiFormat;
+import edu.utah.hsir.javaRedcap.enums.REDCapApiContent;
+import edu.utah.hsir.javaRedcap.enums.REDCapApiFormat;
+import edu.utah.hsir.javaRedcap.enums.REDCapApiParameter;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 
-public class RedCapApiConnectionTest
+@SuppressWarnings("javadoc")
+public class REDCapApiConnectionTest
 {
 	private static final String TEST_URL = "http://host.somedomain.org/an-end-point/";
 
     private File testCACertificateFile;
 
 	private MockWebServer mockWebServer;
-	private RedCapApiConnection testConnection;
+	private REDCapApiConnection testConnection;
 
 
 	@Before
-	public void setupTest() throws JavaRedcapException, IOException {
+	public void setupTest() throws JavaREDCapException, IOException {
 	    mockWebServer = new MockWebServer();
-		testConnection = new RedCapApiConnection(mockWebServer.url("/").toString(), false, (String)null);
+		testConnection = new REDCapApiConnection(mockWebServer.url("/").toString(), false, (String)null);
 
 	    testCACertificateFile = File.createTempFile("redcap", null);
 	    testCACertificateFile.deleteOnExit();
@@ -60,7 +62,7 @@ public class RedCapApiConnectionTest
         ErrorHandler errorHandler = new ErrorHandler();
         
 		try {
-	        RedCapApiConnection connection = new RedCapApiConnection(
+	        REDCapApiConnection connection = new REDCapApiConnection(
 			    TEST_URL,
 			    sslVerify,
 			    testCACertificateFile.getAbsolutePath(),
@@ -71,14 +73,14 @@ public class RedCapApiConnectionTest
 	        assertEquals("SSL Verify check failed", sslVerify, connection.getSslVerify());
 	        assertEquals("CA certificate file check failed", testCACertificateFile.getAbsolutePath(), connection.getCaCertificateFile());
 	        assertSame("Error handler check failed", errorHandler, connection.getErrorHandler());
-		} catch (JavaRedcapException e) {
+		} catch (JavaREDCapException e) {
 			fail(e.getMessage());
 		}
         
     }
 
 	@Test
-    public void testCall() throws JavaRedcapException
+    public void testCall() throws JavaREDCapException
     {
         String expectedResponse = "call test";
         
@@ -87,7 +89,7 @@ public class RedCapApiConnectionTest
         	      .setBody(expectedResponse)
         	      .setResponseCode(200));
         	         	 
-        RedCapApiParams data = new RedCapApiParams("ABCDEF1234567890ABCDEF1234567890", RedCapApiContent.RECORD, null);
+        REDCapApiRequest data = new REDCapApiRequest("ABCDEF1234567890ABCDEF1234567890", REDCapApiContent.RECORD, null);
         data.setData("string data");
         
         String response = testConnection.call(data);
@@ -105,41 +107,41 @@ public class RedCapApiConnectionTest
         	      .setBody(expectedResponse)
         	      .setResponseCode(200));
         
-        Map<String, Object> data = new HashMap<String, Object>();
+        Map<REDCapApiParameter, Object> data = new HashMap<REDCapApiParameter, Object>();
         
-        JavaRedcapException exception;
+        JavaREDCapException exception;
         
-        exception = assertThrows(JavaRedcapException.class, () -> {
+        exception = assertThrows(JavaREDCapException.class, () -> {
         	testConnection.callWithMap(data);
         });
         
 		MatcherAssert.assertThat(exception.getMessage(), CoreMatchers.containsString("missing"));
 		assertEquals(ErrorHandlerInterface.INVALID_ARGUMENT, exception.getCode());
 
-		data.put(RedCapApiParams.TOKEN, "1234567890ABCDEF1234567890ABCDEF");
+		data.put(REDCapApiParameter.TOKEN, "1234567890ABCDEF1234567890ABCDEF");
 
-		exception = assertThrows(JavaRedcapException.class, () -> {
+		exception = assertThrows(JavaREDCapException.class, () -> {
             testConnection.callWithMap(data);
         });
         
 		MatcherAssert.assertThat(exception.getMessage(), CoreMatchers.containsString("missing"));
 		assertEquals(ErrorHandlerInterface.INVALID_ARGUMENT, exception.getCode());
 		
-		data.put(RedCapApiParams.CONTENT, RedCapApiContent.EVENT);
+		data.put(REDCapApiParameter.CONTENT, REDCapApiContent.EVENT);
 
-		exception = assertThrows(JavaRedcapException.class, () -> {
+		exception = assertThrows(JavaREDCapException.class, () -> {
             testConnection.callWithMap(data);
         });
         
 		MatcherAssert.assertThat(exception.getMessage(), CoreMatchers.containsString("missing"));
 		assertEquals(ErrorHandlerInterface.INVALID_ARGUMENT, exception.getCode());
 		
-		data.put(RedCapApiParams.FORMAT, RedCapApiFormat.JSON);
+		data.put(REDCapApiParameter.FORMAT, REDCapApiFormat.JSON);
 
 		try {
 			testConnection.callWithMap(data);
 		}
-		catch (JavaRedcapException e) {
+		catch (JavaREDCapException e) {
 			fail("JavaRedcapException should not have been thrown: " + e.getMessage());
 		}
         
@@ -166,10 +168,10 @@ public class RedCapApiConnectionTest
     }
 
 	@Test
-    public void testSetUrl() throws JavaRedcapException
+    public void testSetUrl() throws JavaREDCapException
     {
 		// Need to use a local connection to bypass mock web server
-		RedCapApiConnection localConn = new RedCapApiConnection(TEST_URL, false, (String)null);
+		REDCapApiConnection localConn = new REDCapApiConnection(TEST_URL, false, (String)null);
 
 		assertEquals("Initial URL state unexpected", TEST_URL, localConn.getUrl());
         
@@ -178,14 +180,14 @@ public class RedCapApiConnectionTest
         
         assertEquals("Url set/get failure",newUrl, localConn.getUrl());
         
-        JavaRedcapException exception = assertThrows(JavaRedcapException.class, () -> {
+        JavaREDCapException exception = assertThrows(JavaREDCapException.class, () -> {
 			localConn.setUrl(null);
 		});
 		
 		MatcherAssert.assertThat(exception.getMessage(), CoreMatchers.containsString("URL"));
 		assertEquals(ErrorHandlerInterface.INVALID_URL, exception.getCode());
 
-		exception = assertThrows(JavaRedcapException.class, () -> {
+		exception = assertThrows(JavaREDCapException.class, () -> {
 			localConn.setUrl("");
 		});
 		
@@ -194,7 +196,7 @@ public class RedCapApiConnectionTest
     }
 
 	@Test
-    public void testSetSslVerify() throws JavaRedcapException
+    public void testSetSslVerify() throws JavaREDCapException
     {
 		assertFalse("Initial SSLVerify state unexpected", testConnection.getSslVerify());
 		
@@ -204,7 +206,7 @@ public class RedCapApiConnectionTest
     }
 
 	@Test
-    public void testSetCaCertificateFile() throws JavaRedcapException
+    public void testSetCaCertificateFile() throws JavaREDCapException
     {
 		assertNull("Initial caCertificate state unexpected", testConnection.getCaCertificateFile());
 		
@@ -216,7 +218,7 @@ public class RedCapApiConnectionTest
 
         assertNull("CA certificate file set/get failure", testConnection.getCaCertificateFile());
         
-        JavaRedcapException exception = assertThrows(JavaRedcapException.class, () -> {
+        JavaREDCapException exception = assertThrows(JavaREDCapException.class, () -> {
         	testConnection.setCaCertificateFile("  ");        	
         });
 
@@ -225,27 +227,27 @@ public class RedCapApiConnectionTest
     }
 
 	@Test
-    public void testSetTimeoutInSeconds() throws JavaRedcapException
+    public void testSetTimeoutInSeconds() throws JavaREDCapException
     {
         assertEquals(
         		"Initial timeout state unexpected",
-        		RedCapApiConnection.DEFAULT_TIMEOUT_IN_SECONDS,
+        		REDCapApiConnection.DEFAULT_TIMEOUT_IN_SECONDS,
         		testConnection.getTimeoutInSeconds()
         		);
         
-        int timeout = RedCapApiConnection.DEFAULT_TIMEOUT_IN_SECONDS + 600;
+        int timeout = REDCapApiConnection.DEFAULT_TIMEOUT_IN_SECONDS + 600;
         testConnection.setTimeoutInSeconds(timeout);
 
         assertEquals("Timeout set/get failure", timeout, testConnection.getTimeoutInSeconds());
         
-        JavaRedcapException exception = assertThrows(JavaRedcapException.class, () -> {
+        JavaREDCapException exception = assertThrows(JavaREDCapException.class, () -> {
 			testConnection.setTimeoutInSeconds(0);
 		});
 		
 		MatcherAssert.assertThat(exception.getMessage(), CoreMatchers.containsString("Timeout"));
 		assertEquals(ErrorHandlerInterface.INVALID_ARGUMENT, exception.getCode());
 
-		exception = assertThrows(JavaRedcapException.class, () -> {
+		exception = assertThrows(JavaREDCapException.class, () -> {
 			testConnection.setTimeoutInSeconds(-10);
 		});
 		
@@ -254,27 +256,27 @@ public class RedCapApiConnectionTest
     }
 
 	@Test
-    public void testSetConnectionTimeoutInSeconds() throws JavaRedcapException
+    public void testSetConnectionTimeoutInSeconds() throws JavaREDCapException
     {
 		assertEquals(
 				"Initial connection timeout state unexpected",
-				RedCapApiConnection.DEFAULT_CONNECTION_TIMEOUT_IN_SECONDS,
+				REDCapApiConnection.DEFAULT_CONNECTION_TIMEOUT_IN_SECONDS,
 				testConnection.getConnectionTimeoutInSeconds()
 				);
         
-        int timeout = RedCapApiConnection.DEFAULT_CONNECTION_TIMEOUT_IN_SECONDS + 120;
+        int timeout = REDCapApiConnection.DEFAULT_CONNECTION_TIMEOUT_IN_SECONDS + 120;
         testConnection.setConnectionTimeoutInSeconds(timeout);
 
         assertEquals("Connection Timeout set/get failure", timeout, testConnection.getConnectionTimeoutInSeconds());
         
-        JavaRedcapException exception = assertThrows(JavaRedcapException.class, () -> {
+        JavaREDCapException exception = assertThrows(JavaREDCapException.class, () -> {
 			testConnection.setConnectionTimeoutInSeconds(0);
 		});
 		
 		MatcherAssert.assertThat(exception.getMessage(), CoreMatchers.containsString("Timeout"));
 		assertEquals(ErrorHandlerInterface.INVALID_ARGUMENT, exception.getCode());
 
-		exception = assertThrows(JavaRedcapException.class, () -> {
+		exception = assertThrows(JavaREDCapException.class, () -> {
 			testConnection.setConnectionTimeoutInSeconds(-10);
 		});
 		
@@ -288,7 +290,7 @@ public class RedCapApiConnectionTest
 		String testFile = testCACertificateFile.getAbsolutePath();
 		testCACertificateFile.delete();
 
-		JavaRedcapException exception = assertThrows(JavaRedcapException.class, () -> {
+		JavaREDCapException exception = assertThrows(JavaREDCapException.class, () -> {
 			testConnection.setCaCertificateFile(testFile);
 		});
 
@@ -304,7 +306,7 @@ public class RedCapApiConnectionTest
 
 		testCACertificateFile.setReadable(false);
 
-		JavaRedcapException exception = assertThrows(JavaRedcapException.class, () -> {
+		JavaREDCapException exception = assertThrows(JavaREDCapException.class, () -> {
 			testConnection.setCaCertificateFile(testCACertificateFile.getAbsolutePath());
 		});
 
@@ -316,7 +318,7 @@ public class RedCapApiConnectionTest
 
 	@Test
 	public void testClone() {
-		RedCapApiConnection cloneConn = (RedCapApiConnection)testConnection.clone();
+		REDCapApiConnection cloneConn = (REDCapApiConnection)testConnection.clone();
 		
 		assertNotSame(cloneConn, testConnection);
 		assertNotSame(cloneConn.errorHandler, testConnection.errorHandler);
@@ -335,7 +337,7 @@ public class RedCapApiConnectionTest
         
         $caughtException = false;
         try {
-            $apiConnection = new RedCapApiConnection($this->apiUrl);
+            $apiConnection = new REDCapApiConnection($this->apiUrl);
             $apiConnection->call('data');
         } catch (PhpCapException $exception) {
             $caughtException = true;
@@ -356,7 +358,7 @@ public class RedCapApiConnectionTest
         
         $caughtException = false;
         try {
-            $apiConnection = new RedCapApiConnection($this->apiUrl);
+            $apiConnection = new REDCapApiConnection($this->apiUrl);
             $apiConnection->call('data');
         } catch (PhpCapException $exception) {
             $caughtException = true;

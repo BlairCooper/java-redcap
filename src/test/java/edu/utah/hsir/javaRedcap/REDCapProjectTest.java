@@ -29,28 +29,30 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
-import edu.utah.hsir.javaRedcap.enums.RedCapApiContent;
-import edu.utah.hsir.javaRedcap.enums.RedCapApiFormat;
+import edu.utah.hsir.javaRedcap.enums.REDCapApiContent;
+import edu.utah.hsir.javaRedcap.enums.REDCapApiFormat;
+import edu.utah.hsir.javaRedcap.enums.REDCapApiParameter;
 
-public class RedCapProjectTest
+@SuppressWarnings("javadoc")
+public class REDCapProjectTest
 {
 	private String apiUrl;
     private String apiToken;
-    private RedCapApiConnection mockConnection;
-    private RedCapProject redCapProject;
+    private REDCapApiConnection mockConnection;
+    private REDCapProject redCapProject;
 
     @Before
-    public void setUp() throws JavaRedcapException
+    public void setUp() throws JavaREDCapException
     {
         apiUrl   = "https://redcap.somplace.edu/api/";
         apiToken = "12345678901234567890123456789012";
         
         
 
-        mockConnection = Mockito.mock(RedCapApiConnection.class);
+        mockConnection = Mockito.mock(REDCapApiConnection.class);
         Mockito.when(mockConnection.getUrl()).thenReturn(apiUrl);
         
-        redCapProject = new RedCapProject(
+        redCapProject = new REDCapProject(
             apiUrl,
             apiToken,
             false,
@@ -62,8 +64,8 @@ public class RedCapProjectTest
     }
     
     @Test
-    public void testCreateProjectWithNoConnection() throws JavaRedcapException {
-    	RedCapProject project = new RedCapProject(apiUrl, apiToken, false, null, null, null);
+    public void testCreateProjectWithNoConnection() throws JavaREDCapException {
+    	REDCapProject project = new REDCapProject(apiUrl, apiToken, false, null, null, null);
     	
     	assertNotNull(project.getConnection());
     }
@@ -71,8 +73,8 @@ public class RedCapProjectTest
     @Test
     public void testCreateProjectWithNullApiToken()
     {
-    	JavaRedcapException exception = assertThrows(JavaRedcapException.class, () -> {
-            new RedCapProject(apiUrl, null, false, null, null, null);
+    	JavaREDCapException exception = assertThrows(JavaREDCapException.class, () -> {
+            new REDCapProject(apiUrl, null, false, null, null, null);
     	});
 
     	assertEquals("Null API token exception code check failed", ErrorHandlerInterface.INVALID_ARGUMENT, exception.getCode());
@@ -82,8 +84,8 @@ public class RedCapProjectTest
     @Test
     public void testCreateProjectWithBlankApiToken()
     {
-    	JavaRedcapException exception = assertThrows(JavaRedcapException.class, () -> {
-            new RedCapProject(apiUrl, " ", false, null, null, null);
+    	JavaREDCapException exception = assertThrows(JavaREDCapException.class, () -> {
+            new REDCapProject(apiUrl, " ", false, null, null, null);
     	});
 
     	assertEquals("Blank API token exception code check failed", ErrorHandlerInterface.INVALID_ARGUMENT, exception.getCode());
@@ -93,8 +95,8 @@ public class RedCapProjectTest
     @Test
     public void testCreateProjectwithApiTokenWithInvalidCharacter()
     {
-    	JavaRedcapException exception = assertThrows(JavaRedcapException.class, () -> {
-            new RedCapProject(apiUrl, "1234567890123456789012345678901G", false, null, null, null);
+    	JavaREDCapException exception = assertThrows(JavaREDCapException.class, () -> {
+            new REDCapProject(apiUrl, "1234567890123456789012345678901G", false, null, null, null);
     	});
 
     	assertEquals("API token with invalid character exception code check failed", ErrorHandlerInterface.INVALID_ARGUMENT, exception.getCode());
@@ -104,8 +106,8 @@ public class RedCapProjectTest
     @Test
     public void testCreateProjectWithApiTokenWithIncorrectLength()
     {
-    	JavaRedcapException exception = assertThrows(JavaRedcapException.class, () -> {
-            new RedCapProject(apiUrl, "1234567890123456789012345678901", false, null, null, null);
+    	JavaREDCapException exception = assertThrows(JavaREDCapException.class, () -> {
+            new REDCapProject(apiUrl, "1234567890123456789012345678901", false, null, null, null);
     	});
 
     	assertEquals("API token with incorrect length exception code check failed", ErrorHandlerInterface.INVALID_ARGUMENT, exception.getCode());
@@ -113,7 +115,7 @@ public class RedCapProjectTest
     }
 
     @Test
-    public void testSetErrorHandler() throws JavaRedcapException
+    public void testSetErrorHandler() throws JavaREDCapException
     {
     	ErrorHandlerInterface errorHandler = redCapProject.getErrorHandler();
         assertNotNull("Error handler not null check failed", errorHandler);
@@ -130,24 +132,24 @@ public class RedCapProjectTest
     }
     
     @Test
-    public void testSetConnection() throws JavaRedcapException
+    public void testSetConnection() throws JavaREDCapException
     {
-        RedCapApiConnectionInterface connection = redCapProject.getConnection();
+        REDCapApiConnectionInterface connection = redCapProject.getConnection();
         assertNotNull("Connection not null check failed", connection);
         
-        assertTrue("Connection class check failed", connection instanceof RedCapApiConnectionInterface);
+        assertTrue("Connection class check failed", connection instanceof REDCapApiConnectionInterface);
         
         String url = connection.getUrl();
         
-        RedCapApiConnectionInterface localConnection = new RedCapApiConnection(url, false, null, null);
+        REDCapApiConnectionInterface localConnection = new REDCapApiConnection(url, false, null, null);
         
         redCapProject.setConnection(localConnection);
         
         //# Test that connection retrieved is the same one that was set
-        RedCapApiConnectionInterface retrievedConnection = redCapProject.getConnection();
+        REDCapApiConnectionInterface retrievedConnection = redCapProject.getConnection();
         assertSame("Connection get check failed", localConnection, retrievedConnection);
         
-        JavaRedcapException exception = assertThrows(JavaRedcapException.class, () -> {
+        JavaREDCapException exception = assertThrows(JavaREDCapException.class, () -> {
         	redCapProject.setConnection(null);
         });
         
@@ -156,41 +158,41 @@ public class RedCapProjectTest
     }
     
     @Test
-    public void testGetApiToken() throws JavaRedcapException {
-    	RedCapProject project = new RedCapProject(apiUrl, apiToken, false, null, null, null);
+    public void testGetApiToken() throws JavaREDCapException {
+    	REDCapProject project = new REDCapProject(apiUrl, apiToken, false, null, null, null);
     	
     	assertEquals(apiToken, project.getApiToken());
     }
     
     @Test
-    public void testGetJavaRedapVersion() throws JavaRedcapException {
-    	RedCapProject project = new RedCapProject(apiUrl, apiToken, false, null, null, null);
+    public void testGetJavaRedapVersion() throws JavaREDCapException {
+    	REDCapProject project = new REDCapProject(apiUrl, apiToken, false, null, null, null);
     	
     	assertEquals(Version.RELEASE_NUMBER, project.getJavaRedcapVersion());
     }
     
     @Test
-    public void testExportArms_noParams() throws JavaRedcapException {
+    public void testExportArms_noParams() throws JavaREDCapException {
     	String expectedResponse = "[{\"arm_num\":1,\"name\":\"Drug A\"},{\"arm_num\":2,\"name\":\"Drug B\"}]";	
 
     	Mockito.when(mockConnection.call(any())).thenReturn(expectedResponse);
-		ArgumentCaptor<RedCapApiParams> argument = ArgumentCaptor.forClass(RedCapApiParams.class);
+		ArgumentCaptor<REDCapApiRequest> argument = ArgumentCaptor.forClass(REDCapApiRequest.class);
     	
         List<Map<String, Object>> arms = redCapProject.exportArms();
         
 		Mockito.verify(mockConnection, times(1)).call(argument.capture());
 		
         // Validate  the call parameters
-		RedCapApiParams params = argument.getValue();
+		REDCapApiRequest params = argument.getValue();
 		
-		assertEquals(apiToken, params.get(RedCapApiParams.TOKEN));
-		assertEquals(RedCapApiContent.ARM, params.get(RedCapApiParams.CONTENT));
-		assertEquals(RedCapApiFormat.JSON, params.get(RedCapApiParams.FORMAT));
-		assertEquals(RedCapApiFormat.JSON, params.get(RedCapApiParams.RETURN_FORMAT));
-		assertFalse(params.keySet().contains(RedCapApiParams.ARMS));
+		assertEquals(apiToken, params.paramMap.get(REDCapApiParameter.TOKEN));
+		assertEquals(REDCapApiContent.ARM, params.paramMap.get(REDCapApiParameter.CONTENT));
+		assertEquals(REDCapApiFormat.JSON, params.paramMap.get(REDCapApiParameter.FORMAT));
+		assertEquals(REDCapApiFormat.JSON, params.paramMap.get(REDCapApiParameter.RETURN_FORMAT));
+		assertFalse(params.paramMap.keySet().contains(REDCapApiParameter.ARMS));
 
 		// There should only be four parameters
-		assertEquals(4, params.keySet().size());
+		assertEquals(4, params.paramMap.keySet().size());
 
 		// Validate the response
         assertNotNull(arms);
@@ -219,28 +221,28 @@ public class RedCapProjectTest
     }
     
     @Test
-    public void testExportArms_withSet() throws JavaRedcapException {
+    public void testExportArms_withSet() throws JavaREDCapException {
     	String expectedResponse = "[{\"arm_num\":2,\"name\":\"Drug B\"}]";
     	Set<Integer> testSet = Set.of(Integer.valueOf(2));
 
     	Mockito.when(mockConnection.call(any())).thenReturn(expectedResponse);
-		ArgumentCaptor<RedCapApiParams> argument = ArgumentCaptor.forClass(RedCapApiParams.class);
+		ArgumentCaptor<REDCapApiRequest> argument = ArgumentCaptor.forClass(REDCapApiRequest.class);
 
         List<Map<String, Object>> arms = redCapProject.exportArms(testSet);
         
 		Mockito.verify(mockConnection, times(1)).call(argument.capture());
 		
         // Validate  the call parameters
-		RedCapApiParams params = argument.getValue();
+		REDCapApiRequest params = argument.getValue();
 		
-		assertEquals(apiToken, params.get(RedCapApiParams.TOKEN));
-		assertEquals(RedCapApiContent.ARM, params.get(RedCapApiParams.CONTENT));
-		assertEquals(RedCapApiFormat.JSON, params.get(RedCapApiParams.FORMAT));
-		assertEquals(RedCapApiFormat.JSON, params.get(RedCapApiParams.RETURN_FORMAT));
-		assertEquals(testSet, params.get(RedCapApiParams.ARMS));
+		assertEquals(apiToken, params.paramMap.get(REDCapApiParameter.TOKEN));
+		assertEquals(REDCapApiContent.ARM, params.paramMap.get(REDCapApiParameter.CONTENT));
+		assertEquals(REDCapApiFormat.JSON, params.paramMap.get(REDCapApiParameter.FORMAT));
+		assertEquals(REDCapApiFormat.JSON, params.paramMap.get(REDCapApiParameter.RETURN_FORMAT));
+		assertEquals(testSet, params.paramMap.get(REDCapApiParameter.ARMS));
 
 		// There should only be five parameters
-		assertEquals(5, params.keySet().size());
+		assertEquals(5, params.paramMap.keySet().size());
 
 		// Validate the response
         assertNotNull(arms);

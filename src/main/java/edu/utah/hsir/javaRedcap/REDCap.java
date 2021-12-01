@@ -16,89 +16,98 @@ import java.util.regex.Pattern;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import edu.utah.hsir.javaRedcap.enums.RedCapApiContent;
-import edu.utah.hsir.javaRedcap.enums.RedCapApiFormat;
+import edu.utah.hsir.javaRedcap.enums.REDCapApiContent;
+import edu.utah.hsir.javaRedcap.enums.REDCapApiFormat;
 
 /**
  * REDCap class used to represent a REDCap instance/site. This class is
  * typically only useful if your program needs to create REDCap projects
  * and/or needs to access more than one REDCap project.
  */
-public class RedCap
+public class REDCap
 {
 	protected String superToken;
     protected ErrorHandlerInterface errorHandler;
     
     /** connection to the REDCap API at the apiURL. */
-    protected RedCapApiConnectionInterface connection;
+    protected REDCapApiConnectionInterface connection;
 
     /** function for creating project object */
-    protected RedCapProjectFactory projectFactory;
+    protected REDCapProjectFactory projectFactory;
+
     
     /**
-    *
-    * @param string $superToken the user's super token. This needs to be provided if
-    *     you are going to create projects.
-    * @param ErrorHandlerInterface $errorHandler the error handler that will be
-    *    used. This would normally only be set if you want to override the PHPCap's default
-    *    error handler.
-    * @param RedCapApiConnectionInterface $connection the connection that will be used.
-    *    This would normally only be set if you want to override the PHPCap's default
-    *    connection. If this argument is specified, the $apiUrl, $sslVerify, and
-    *    $caCertificateFile arguments will be ignored, and the values for these
-    *    set in the connection will be used.
-    *
-    * @throws JavaRedcapException 
-    */
-    public RedCap (
+     * Constructs an instance for communicating with the REDCap server via
+     * the provided connection.  
+     *
+     * @param superToken The user's super token. This needs to be provided if
+     *     you are going to create projects.
+     * @param errorHandler The error handler that will be used. This would
+     * 		normally only be set if you want to override JavaRedcap's default
+     *		error handler.
+     * @param connection The connection that will be used. This would normally
+     * 		only be set if you want to override JavaRedcap's default
+     * 		connection. If this argument is specified, the apiUrl, sslVerify,
+     * 		and caCertificateFile arguments will be ignored, and the values
+     * 		for these set in the connection will be used.
+     *
+     * @throws JavaREDCapException Thrown if there is an issue with one of the
+     * 		parameters or there is a problem creating the connection. 
+     */
+    public REDCap (
     		String superToken,
-    		RedCapApiConnectionInterface connection,
+    		REDCapApiConnectionInterface connection,
     		ErrorHandlerInterface errorHandler
-    		) throws JavaRedcapException
+    		) throws JavaREDCapException
     {
     	setErrorHandler(errorHandler);
  	   
     	this.superToken = processApiTokenArgument(superToken, 64, this.errorHandler);
         
     	if (null == connection) {
-    		throw new JavaRedcapException("Connection cannot be null", ErrorHandlerInterface.INVALID_ARGUMENT);
+    		throw new JavaREDCapException("Connection cannot be null", ErrorHandlerInterface.INVALID_ARGUMENT);
     	}
     	
     	this.connection = connection;
        
-    	projectFactory = new RedCapProjectFactory() {
+    	projectFactory = new REDCapProjectFactory() {
     		@Override
-			public RedCapProject createProject(String apiUrl, String apiToken, boolean sslVerify,
+			public REDCapProject createProject(String apiUrl, String apiToken, boolean sslVerify,
 					String caCertificateFile, ErrorHandlerInterface errorHandler,
-					RedCapApiConnectionInterface connection) throws JavaRedcapException {
-				return new RedCapProject(apiUrl, apiToken, sslVerify, caCertificateFile, errorHandler, connection);
+					REDCapApiConnectionInterface connection) throws JavaREDCapException {
+				return new REDCapProject(apiUrl, apiToken, sslVerify, caCertificateFile, errorHandler, connection);
 			}
     	};
     }
 
     /**
+     * 
+     * Constructs an instance for communicating with the REDCap server via
+     * a REDCapApiConnection instance.  
      *
-     * @param string $apiUrl the URL for the API for your REDCap site.
-     * @param string $superToken the user's super token. This needs to be provided if
-     *     you are going to create projects.
-     * @param boolean $sslVerify indicates if SSL connection to REDCap web site should be verified.
-     * @param string $caCertificateFile the full path name of the CA (Certificate Authority)
+     * @param apiUrl the URL for the API for your REDCap site.
+     * @param superToken The user's super token. This needs to be provided if
+     *		you are going to create projects.
+     * @param sslVerify indicates if SSL connection to REDCap web site should
+     * 		be verified.
+     * @param caCertificateFile the full path name of the CA (Certificate Authority)
      *     certificate file.
-     * @param ErrorHandlerInterface $errorHandler the error handler that will be
-     *    used. This would normally only be set if you want to override the PHPCap's default
-     *    error handler.
+     * @param errorHandler The error handler that will be used. This would
+     * 		normally only be set if you want to override JavaRedcap's default
+     *		error handler.
      *
-     * @throws JavaRedcapException 
+     * @throws JavaREDCapException Thrown if there is an issue with one of the
+     * 		parameters or there is a problem creating the connection. 
      */
-    public RedCap (
+    public REDCap (
     	String apiUrl,
     	String superToken,
     	boolean sslVerify,
         String caCertificateFile,
         ErrorHandlerInterface errorHandler
-        ) throws JavaRedcapException
+        ) throws JavaREDCapException
     {
-    	this(superToken, new RedCapApiConnection(apiUrl, sslVerify, caCertificateFile, null), errorHandler);
+    	this(superToken, new REDCapApiConnection(apiUrl, sslVerify, caCertificateFile, null), errorHandler);
     }
     
  
@@ -122,7 +131,7 @@ public class RedCap
      *     </ul>
      *   </li>
      *   <li>
-     *     <b>purpose_other</b> - text descibing purpose if purpose above is specified as 1.
+     *     <b>purpose_other</b> - text describing purpose if purpose above is specified as 1.
      *   </li>
      *   <li>
      *     <b>project_notes</b> - notes about the project.
@@ -135,7 +144,7 @@ public class RedCap
      *     <b>surveys_enabled</b> - indicates if surveys are enabled (0 = False [default], 1 = True).
      *   </li>
      *   <li>
-     *     <b>record_autonumbering_enabled</b> - indicates id record autonumbering is enabled
+     *     <b>record_autonumbering_enabled</b> - indicates id record auto numbering is enabled
      *     (0 = False [default], 1 = True).
      *   </li>
      * </ul>
@@ -144,21 +153,21 @@ public class RedCap
      * @param odm String in CDISC ODM XML format that contains metadata and
      * 		optionally data to be imported into the created project.
      *
-     * @return RedCapProject the project that was created.
+     * @return REDCapProject the project that was created.
      * 
-     * @throws JavaRedcapException 
+     * @throws JavaREDCapException Thrown if there is a problem creating the project.
      */
-    public RedCapProject createProject (List<Map<String, Object>> projectData, String odm) throws JavaRedcapException {
-    	RedCapProject result = null;
+    public REDCapProject createProject (List<Map<String, Object>> projectData, String odm) throws JavaREDCapException {
+    	REDCapProject result = null;
     	
     	try {
     		// Convert to JSON and send it on.
     		String json = new ObjectMapper().writeValueAsString(projectData);
 
-    		result = createProject(json, RedCapApiFormat.JSON, odm);
+    		result = createProject(json, REDCapApiFormat.JSON, odm);
     	}
     	catch (JsonProcessingException e) {
-    		throw new JavaRedcapException("Exception preparing REDCap request", ErrorHandlerInterface.JSON_ERROR, e);
+    		throw new JavaREDCapException("Exception preparing REDCap request", ErrorHandlerInterface.JSON_ERROR, e);
     	}
 
     	return result;
@@ -211,16 +220,16 @@ public class RedCap
      * @param odm A string in CDISC ODM XML format that contains metadata and
      * 		optionally data to be imported into the created project.
      *
-     * @return RedCapProject the project that was created.
+     * @return REDCapProject the project that was created.
      * 
-     * @throws JavaRedcapException 
+     * @throws JavaREDCapException Thrown if there is a problem creating the project.
      */
-    public RedCapProject createProject (String projectData, RedCapApiFormat format, String odm) throws JavaRedcapException {
+    public REDCapProject createProject (String projectData, REDCapApiFormat format, String odm) throws JavaREDCapException {
         // Note: might want to clone error handler, in case state variables
         // have been added that should differ for different uses, e.g.,
         // a user message that is displayed where you have multiple project
         // objects
-    	RedCapApiParams data = new RedCapApiParams(superToken, RedCapApiContent.PROJECT, errorHandler);
+    	REDCapApiRequest data = new REDCapApiRequest(superToken, REDCapApiContent.PROJECT, errorHandler);
        
         /*
          * Process the arguments
@@ -244,12 +253,15 @@ public class RedCap
      * Gets the REDCap version number of the REDCap instance being used.
      * A super token must have been specified for this method to be used.
      *
-     * @return string the REDCap version number of the REDCap instance being used by the project.
-     * @throws JavaRedcapException 
+     * @return string the REDCap version number of the REDCap instance being
+     * 		used by the project.
+     * 
+     * @throws JavaREDCapException Thrown if there is a problem communicating
+     * 		with the REDCap server.
      */
-    public String  exportRedcapVersion() throws JavaRedcapException {
+    public String  exportRedcapVersion() throws JavaREDCapException {
 
-        String redcapVersion = connection.call(new RedCapApiParams(superToken, RedCapApiContent.VERSION, errorHandler));
+        String redcapVersion = connection.call(new REDCapApiRequest(superToken, REDCapApiContent.VERSION, errorHandler));
 
         return redcapVersion;
     }
@@ -258,23 +270,25 @@ public class RedCap
     /**
      * Gets the REDCap project for the specified API token.
      *
-     * @param string $apiToken the API token for the project to get.
+     * @param apiToken The API token for the project to use.
      *
-     * @return \IU\PHPCap\RedCapProject the project for the specified API token.
+     * @return A REDCapProject instance created by the currently configured
+     * REDCapProjectFactory.
      * 
-     * @throws JavaRedcapException 
+     * @throws JavaREDCapException Thrown if there is an issue creating the
+     * 		project or with the parameters provided. 
      */
-    public RedCapProject getProject(String apiToken) throws JavaRedcapException
+    public REDCapProject getProject(String apiToken) throws JavaREDCapException
     {
-        apiToken = RedCap.processApiTokenArgument(apiToken, 32, errorHandler);
+        apiToken = REDCap.processApiTokenArgument(apiToken, 32, errorHandler);
 
-        RedCapProject project = projectFactory.createProject(
+        REDCapProject project = projectFactory.createProject(
         		connection.getUrl(),
         		apiToken,
         		connection.getSslVerify(),
         		connection.getCaCertificateFile(),
         		(ErrorHandler)errorHandler.clone(),
-        		(RedCapApiConnection)connection.clone()
+        		(REDCapApiConnection)connection.clone()
         		);
         
         return project;
@@ -285,22 +299,22 @@ public class RedCap
      *
      * @return The function used by this class to create projects.
      */
-    public RedCapProjectFactory getProjectFactory()
+    public REDCapProjectFactory getProjectFactory()
     {
         return projectFactory;
     }
     
     /**
      * Sets the function used to create projects in this class.
-     * This method would normally only be used if you have extended
-     * the RedCapProject class and want RedCap to return
-     * projects using your extended class.
+     * 
+     * This method would normally only be used if you have extended the
+     * REDCapProject class and want REDCap to return projects using your
+     * extended class.
      *
-     * @param The function to call to create a new project.
-     *     The function will be passed the same arguments as the RedCapProject
-     *     constructor gets.
+     * @param projectFactory The factory instance to use in creating new
+     * 		projects.
      */
-    public void setProjectFactory(RedCapProjectFactory projectFactory)
+    public void setProjectFactory(REDCapProjectFactory projectFactory)
     {
     	if (null != projectFactory) {
     		this.projectFactory = projectFactory;
@@ -320,7 +334,7 @@ public class RedCap
     /**
      * Set the error handler that is used.
      *
-     * @param The error handler to use.
+     * @param errorHandler The error handler to use.
      */
     public void setErrorHandler(ErrorHandlerInterface errorHandler)
     {
@@ -337,7 +351,7 @@ public class RedCap
      *
      * @return The connection being used.
      */
-    public RedCapApiConnectionInterface getConnection()
+    public REDCapApiConnectionInterface getConnection()
     {
         return connection;
     }
@@ -345,10 +359,11 @@ public class RedCap
     /**
      * Sets the connection that is used.
      *
-     * @param RedCapApiConnectionInterface $connection the connection to use.
-     * @throws JavaRedcapException 
+     * @param connection The connection to use for requests to REDCap.
+     * 
+     * @throws JavaREDCapException Thrown if the connection provided is null. 
      */
-    public void setConnection(RedCapApiConnectionInterface connection) throws JavaRedcapException
+    public void setConnection(REDCapApiConnectionInterface connection) throws JavaREDCapException
     {
     	if (null == connection) {
     		errorHandler.throwException(
@@ -359,17 +374,35 @@ public class RedCap
     	this.connection = connection;
     }
 
-    public static String processApiTokenArgument(String apiToken, int length, ErrorHandlerInterface errorHandler) throws JavaRedcapException
+    /**
+     * Validates the tokne provided.
+     * 
+     * @param apiToken An API token to validate.
+     * @param length The expected length of the token. Must be either 32 (a
+     * 		regular token) or 64 (a super token).
+     * @param errorHandler The error handler to use in the event there's a
+     * 		problem with the token.
+     * 
+     * @return The validated token.
+     * 
+     * @throws JavaREDCapException Thrown if there is an issue with the token provided.
+     */
+    public static String processApiTokenArgument(String apiToken, int length, ErrorHandlerInterface errorHandler) throws JavaREDCapException
     {
     	if (null == apiToken || 0 == apiToken.trim().length()) {
     		errorHandler.throwException(
     				"The REDCap API token specified for the project was null or blank.",
     				ErrorHandlerInterface.INVALID_ARGUMENT
     				);
-        } else if (!apiToken.matches("^[A-F0-9]+$")) {   // check token for hexidecimal
+        } else if (!apiToken.matches("^[A-F0-9]+$")) {   // check token for hexadecimal
         	errorHandler.throwException(
         			"The REDCap API token has an invalid format. " +
         			"It should only contain numbers and the letters A, B, C, D, E and F.",
+        			ErrorHandlerInterface.INVALID_ARGUMENT
+        			);
+        } else if (length != 32 && length != 64) {
+        	errorHandler.throwException(
+        			"Invalid length specifed. REDCap API tokens are either 32 or 64 characters long.",
         			ErrorHandlerInterface.INVALID_ARGUMENT
         			);
         } else if (apiToken.trim().length() != length) { // # Note: super tokens are not valid for project methods
@@ -384,7 +417,7 @@ public class RedCap
     }
 
     
-    protected String processImportDataArgument(String data, String dataName, RedCapApiFormat format) throws JavaRedcapException
+    protected String processImportDataArgument(String data, String dataName, REDCapApiFormat format) throws JavaREDCapException
     {
         if (null == data) {
         	errorHandler.throwException(
@@ -396,9 +429,9 @@ public class RedCap
         return data;
     }
     
-    protected void checkForRedcapError(String result) throws JavaRedcapException
+    protected void checkForRedcapError(String result) throws JavaREDCapException
     {
-    	Pattern pattern = Pattern.compile(RedCapProject.JSON_RESULT_ERROR_PATTERN);
+    	Pattern pattern = Pattern.compile(REDCapProject.JSON_RESULT_ERROR_PATTERN);
     	Matcher matcher = pattern.matcher(result);
 
     	if (matcher.matches()) {

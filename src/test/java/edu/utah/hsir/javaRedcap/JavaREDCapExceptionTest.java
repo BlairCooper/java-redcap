@@ -14,7 +14,8 @@ import static org.junit.Assert.assertSame;
 
 import org.junit.Test;
 
-public class JavaRedcapExceptionTest
+@SuppressWarnings("javadoc")
+public class JavaREDCapExceptionTest
 {
 	@Test
 	public void testInvalidArgument()
@@ -23,8 +24,8 @@ public class JavaRedcapExceptionTest
         int code    = ErrorHandlerInterface.INVALID_ARGUMENT;
         
         try {
-            throw new JavaRedcapException(message, code);
-        } catch (JavaRedcapException exception) {
+            throw new JavaREDCapException(message, code);
+        } catch (JavaREDCapException exception) {
             assertEquals(exception.getMessage(), message);
             assertEquals(exception.getCode(), code);
             assertNull(exception.getConnectionErrorNumber());
@@ -42,8 +43,8 @@ public class JavaRedcapExceptionTest
         Integer httpCode = 405;
 
         try {
-            throw new JavaRedcapException(message, code, connectionErrorNumber, httpCode, null);
-        } catch (JavaRedcapException exception) {
+            throw new JavaREDCapException(message, code, connectionErrorNumber, httpCode, null);
+        } catch (JavaREDCapException exception) {
             assertEquals(exception.getMessage(), message);
             assertEquals(exception.getCode(), code);
             assertEquals(exception.getConnectionErrorNumber(), connectionErrorNumber);
@@ -59,8 +60,8 @@ public class JavaRedcapExceptionTest
         int code    = ErrorHandlerInterface.INPUT_FILE_ERROR;
 
         try {
-            throw new JavaRedcapException(message, code, null, null, null);
-        } catch (JavaRedcapException exception) {
+            throw new JavaREDCapException(message, code, null, null, null);
+        } catch (JavaREDCapException exception) {
             assertEquals(exception.getMessage(), message);
             assertEquals(exception.getCode(), code);
             assertNull(exception.getConnectionErrorNumber());
@@ -77,8 +78,8 @@ public class JavaRedcapExceptionTest
         Exception previousException = new RuntimeException();
 
         try {
-            throw new JavaRedcapException(message, code, previousException);
-        } catch (JavaRedcapException exception) {
+            throw new JavaREDCapException(message, code, previousException);
+        } catch (JavaREDCapException exception) {
             assertEquals(exception.getMessage(), message);
             assertEquals(exception.getCode(), code);
             assertNull(exception.getConnectionErrorNumber());
@@ -97,8 +98,8 @@ public class JavaRedcapExceptionTest
         Exception previousException = new RuntimeException();
 
         try {
-            throw new JavaRedcapException(message, code, connectionErrorNumber, httpCode, previousException);
-        } catch (JavaRedcapException exception) {
+            throw new JavaREDCapException(message, code, connectionErrorNumber, httpCode, previousException);
+        } catch (JavaREDCapException exception) {
             assertEquals(exception.getMessage(), message);
             assertEquals(exception.getCode(), code);
             assertEquals(connectionErrorNumber, exception.getConnectionErrorNumber());

@@ -26,60 +26,61 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import edu.utah.hsir.javaRedcap.enums.RedCapApiFormat;
+import edu.utah.hsir.javaRedcap.enums.REDCapApiFormat;
 
-public class RedCapTest
+@SuppressWarnings("javadoc")
+public class REDCapTest
 {
 	private String testSuperToken = "1234567890123456789012345678901234567890123456789012345678901234";
 	private String testToken = "12345678901234567890123456789012";
-    private RedCap redCap;
-    private RedCapApiConnection mockConnection;
-    private RedCapProject mockProject;
-    private RedCapProjectFactory testFactory;
+    private REDCap redCap;
+    private REDCapApiConnection mockConnection;
+    private REDCapProject mockProject;
+    private REDCapProjectFactory testFactory;
 
     @Before
-    public void setUp() throws JavaRedcapException
+    public void setUp() throws JavaREDCapException
     {
-        mockConnection = Mockito.mock(RedCapApiConnection.class);
+        mockConnection = Mockito.mock(REDCapApiConnection.class);
         Mockito.when(mockConnection.getUrl()).thenReturn("http://host.somedomain.com/redcap/api/");
         
-    	mockProject = Mockito.mock(RedCapProject.class);
+    	mockProject = Mockito.mock(REDCapProject.class);
     	Mockito.when(mockProject.getConnection()).thenReturn(mockConnection);
 
-    	testFactory = new RedCapProjectFactory() {
+    	testFactory = new REDCapProjectFactory() {
 			@Override
-			public RedCapProject createProject(String apiUrl, String apiToken, boolean sslVerify,
+			public REDCapProject createProject(String apiUrl, String apiToken, boolean sslVerify,
 					String caCertificateFile, ErrorHandlerInterface errorHandler,
-					RedCapApiConnectionInterface connection) throws JavaRedcapException {
+					REDCapApiConnectionInterface connection) throws JavaREDCapException {
                 return mockProject;
 			}
     	};
 
-    	redCap = new RedCap(testSuperToken, mockConnection, null);
+    	redCap = new REDCap(testSuperToken, mockConnection, null);
         redCap.setProjectFactory(testFactory);
     }
 
     @Test
-    public void testCtor_withConnection() throws JavaRedcapException
+    public void testCtor_withConnection() throws JavaREDCapException
     {
-        RedCap redCap = new RedCap(testSuperToken, mockConnection, null);
+        REDCap redCap = new REDCap(testSuperToken, mockConnection, null);
         
-        assertNotNull("RedCap object should not be null", redCap);
+        assertNotNull("REDCap object should not be null", redCap);
         
         ErrorHandlerInterface errorHandler = redCap.getErrorHandler();
         assertNotNull(errorHandler);
         assertTrue(errorHandler instanceof ErrorHandler);
         
-        RedCapApiConnectionInterface connection = redCap.getConnection();
+        REDCapApiConnectionInterface connection = redCap.getConnection();
         assertNotNull(connection);
         assertSame(mockConnection, connection);
     }
 
     @Test
-    public void testCtor_withNullConnection() throws JavaRedcapException
+    public void testCtor_withNullConnection() throws JavaREDCapException
     {
-    	JavaRedcapException exception = assertThrows(JavaRedcapException.class, () -> {
-            new RedCap(testSuperToken, null, null);
+    	JavaREDCapException exception = assertThrows(JavaREDCapException.class, () -> {
+            new REDCap(testSuperToken, null, null);
     	});
         
     	assertEquals(ErrorHandlerInterface.INVALID_ARGUMENT, exception.getCode());
@@ -87,11 +88,11 @@ public class RedCapTest
     }
 
     @Test
-    public void testCtor_withErrorHandler() throws JavaRedcapException
+    public void testCtor_withErrorHandler() throws JavaREDCapException
     {
     	ErrorHandler errorHandler = new ErrorHandler();
     	
-        RedCap redCap = new RedCap(testSuperToken, mockConnection, errorHandler);
+        REDCap redCap = new REDCap(testSuperToken, mockConnection, errorHandler);
 
         ErrorHandlerInterface retrievedErrorHandler = redCap.getErrorHandler();
         assertNotNull(retrievedErrorHandler);
@@ -99,34 +100,34 @@ public class RedCapTest
     }
 
     @Test
-    public void testCtor_withoutConnection() throws JavaRedcapException
+    public void testCtor_withoutConnection() throws JavaREDCapException
     {
-        RedCap redCap = new RedCap(mockConnection.getUrl(), testSuperToken, false, null, null);
+        REDCap redCap = new REDCap(mockConnection.getUrl(), testSuperToken, false, null, null);
         
-        assertNotNull("RedCap object should not be null", redCap);
+        assertNotNull("REDCap object should not be null", redCap);
         
         ErrorHandlerInterface errorHandler = redCap.getErrorHandler();
         assertNotNull(errorHandler);
         assertTrue(errorHandler instanceof ErrorHandler);
         
-        RedCapApiConnectionInterface connection = redCap.getConnection();
+        REDCapApiConnectionInterface connection = redCap.getConnection();
         assertNotNull(connection);
         assertNotSame(mockConnection, connection);
     }
 
     @Test
-    public void testCheckForRedcapError_emptyResponse() throws JavaRedcapException {
+    public void testCheckForRedcapError_emptyResponse() throws JavaREDCapException {
 		redCap.checkForRedcapError("");
     }
 
     @Test
-    public void testCheckForRedcapError_recordResponse() throws JavaRedcapException {
+    public void testCheckForRedcapError_recordResponse() throws JavaREDCapException {
 		redCap.checkForRedcapError("[{\"recordid\": \"1\"}]");
     }
 
     @Test
-    public void testCheckForRedcapError_errorResponse() throws JavaRedcapException {
-    	JavaRedcapException exception = assertThrows(JavaRedcapException.class, () -> {
+    public void testCheckForRedcapError_errorResponse() throws JavaREDCapException {
+    	JavaREDCapException exception = assertThrows(JavaREDCapException.class, () -> {
     		redCap.checkForRedcapError("{\"error\": \"REDCap API error.\"}");
     	});
     	
@@ -135,22 +136,22 @@ public class RedCapTest
     }
 
     @Test
-    public void testSetConnection() throws JavaRedcapException
+    public void testSetConnection() throws JavaREDCapException
     {
-    	RedCapApiConnectionInterface connection = redCap.getConnection();
+    	REDCapApiConnectionInterface connection = redCap.getConnection();
         assertNotNull("Connection should not be null", connection);
-        assertTrue("Connection class check failed", connection instanceof RedCapApiConnection);
+        assertTrue("Connection class check failed", connection instanceof REDCapApiConnection);
         
-        RedCapApiConnection localConnection = new RedCapApiConnection(connection.getUrl(), false, null);
+        REDCapApiConnection localConnection = new REDCapApiConnection(connection.getUrl(), false, null);
         
         redCap.setConnection(localConnection);
         
         // Test that connection retrieved is the same one that was set
-        RedCapApiConnectionInterface retrievedConnection = redCap.getConnection();
+        REDCapApiConnectionInterface retrievedConnection = redCap.getConnection();
         assertNotNull(retrievedConnection);
         assertSame("Connection get check failed", localConnection, retrievedConnection);
         
-        JavaRedcapException exception = assertThrows(JavaRedcapException.class, () -> {
+        JavaREDCapException exception = assertThrows(JavaREDCapException.class, () -> {
         	redCap.setConnection(null);
         });
         
@@ -178,28 +179,28 @@ public class RedCapTest
     @Test
     public void testGetProjectFactory()
     {
-    	RedCapProjectFactory projectFactory = redCap.getProjectFactory();
+    	REDCapProjectFactory projectFactory = redCap.getProjectFactory();
         assertNotNull(projectFactory);
     }
 
     @Test
     public void testSetProjectFactory()
     {
-    	RedCapProjectFactory projectFactory = redCap.getProjectFactory();
+    	REDCapProjectFactory projectFactory = redCap.getProjectFactory();
     	assertNotNull(projectFactory);
     	
-    	RedCapProjectFactory localFactory = new RedCapProjectFactory() {
+    	REDCapProjectFactory localFactory = new REDCapProjectFactory() {
 			@Override
-			public RedCapProject createProject(String apiUrl, String apiToken, boolean sslVerify,
+			public REDCapProject createProject(String apiUrl, String apiToken, boolean sslVerify,
 					String caCertificateFile, ErrorHandlerInterface errorHandler,
-					RedCapApiConnectionInterface connection) throws JavaRedcapException {
+					REDCapApiConnectionInterface connection) throws JavaREDCapException {
 				return null;
 			}
     	};
     	
     	redCap.setProjectFactory(localFactory);
     	
-    	RedCapProjectFactory retrievedFactory = redCap.getProjectFactory();
+    	REDCapProjectFactory retrievedFactory = redCap.getProjectFactory();
     	
     	assertNotSame(projectFactory, retrievedFactory);
     	assertSame(localFactory, retrievedFactory);
@@ -215,8 +216,8 @@ public class RedCapTest
     @Test
     public void testCtor_superTokenWithInvalidLength()
     {
-    	JavaRedcapException exception = assertThrows(JavaRedcapException.class, () -> {
-    		new RedCap("1234567890", mockConnection, null);
+    	JavaREDCapException exception = assertThrows(JavaREDCapException.class, () -> {
+    		new REDCap("1234567890", mockConnection, null);
     	});
 
     	assertEquals(ErrorHandlerInterface.INVALID_ARGUMENT, exception.getCode());
@@ -226,8 +227,8 @@ public class RedCapTest
     @Test
     public void testCtor_superTokenWithInvalidCharacters()
     {
-    	JavaRedcapException exception = assertThrows(JavaRedcapException.class, () -> {
-    		new RedCap("ABCDEFG890123456789012345678901212345678901234567890123456789012", mockConnection, null);
+    	JavaREDCapException exception = assertThrows(JavaREDCapException.class, () -> {
+    		new REDCap("ABCDEFG890123456789012345678901212345678901234567890123456789012", mockConnection, null);
     	});
 
     	assertEquals(ErrorHandlerInterface.INVALID_ARGUMENT, exception.getCode());
@@ -235,19 +236,19 @@ public class RedCapTest
     }
 
     @Test
-    public void testCreateProject_withJsonAndOdm() throws JavaRedcapException
+    public void testCreateProject_withJsonAndOdm() throws JavaREDCapException
     {
         Mockito.when(mockConnection.call(any())).thenReturn("12345678901234567890123456789012");
 
         String projectData = "[{\"project_title\": \"Test project.\", \"purpose\": \"0\"}]";
         
-        RedCapProject project = redCap.createProject(projectData, RedCapApiFormat.JSON, "");
+        REDCapProject project = redCap.createProject(projectData, REDCapApiFormat.JSON, "");
         
         assertSame(mockProject, project);
     }
 
     @Test
-    public void testCreateProject_withMap() throws JavaRedcapException
+    public void testCreateProject_withMap() throws JavaREDCapException
     {
         Mockito.when(mockConnection.call(any())).thenReturn("12345678901234567890123456789012");
 
@@ -257,20 +258,20 @@ public class RedCapTest
         				"purpose", "0"
         				)
         		);
-        RedCapProject project = redCap.createProject(projectData, "");
+        REDCapProject project = redCap.createProject(projectData, "");
         
         assertSame(mockProject, project);
     }
 
     @Test
-    public void testCreateProject_withRedCapApiError() throws JavaRedcapException
+    public void testCreateProject_withRedCapApiError() throws JavaREDCapException
     {
         Mockito.when(mockConnection.call(any())).thenReturn("{\"error\": \"REDCap API error.\"}");
 
         String projectData = "[{\"project_title\": \"Test project.\", \"purpose\": \"0\"}]";
 
-        JavaRedcapException exception = assertThrows(JavaRedcapException.class, () -> {
-        	redCap.createProject(projectData, RedCapApiFormat.JSON, "");
+        JavaREDCapException exception = assertThrows(JavaREDCapException.class, () -> {
+        	redCap.createProject(projectData, REDCapApiFormat.JSON, "");
         });
         
         assertEquals(ErrorHandlerInterface.REDCAP_API_ERROR, exception.getCode());
@@ -278,10 +279,10 @@ public class RedCapTest
     }
 
     @Test
-    public void testCreateProject_withNullData() throws JavaRedcapException
+    public void testCreateProject_withNullData() throws JavaREDCapException
     {
-        JavaRedcapException exception = assertThrows(JavaRedcapException.class, () -> {
-        	redCap.createProject(null, RedCapApiFormat.JSON, "");
+        JavaREDCapException exception = assertThrows(JavaREDCapException.class, () -> {
+        	redCap.createProject(null, REDCapApiFormat.JSON, "");
         });
         
         assertEquals(ErrorHandlerInterface.INVALID_ARGUMENT, exception.getCode());
@@ -289,17 +290,17 @@ public class RedCapTest
     }
 
     @Test
-    public void testGetProject() throws JavaRedcapException
+    public void testGetProject() throws JavaREDCapException
     {
     	String localToken = new StringBuilder(testToken).reverse().toString();
     	Mockito.when(mockProject.getApiToken()).thenReturn(localToken);
     	
-        RedCapProject project = redCap.getProject(localToken);
+        REDCapProject project = redCap.getProject(localToken);
         
         assertNotNull(project);
         assertEquals(localToken, project.getApiToken());
 
-        RedCapApiConnectionInterface conn = redCap.getConnection();
+        REDCapApiConnectionInterface conn = redCap.getConnection();
         assertEquals(conn.getUrl(), project.getConnection().getUrl());
         assertEquals(conn.getSslVerify(), project.getConnection().getSslVerify());
         assertEquals(conn.getCaCertificateFile(), project.getConnection().getCaCertificateFile());
@@ -308,7 +309,7 @@ public class RedCapTest
     @Test
     public void testGetProject_WithNullApiToken()
     {
-        JavaRedcapException exception = assertThrows(JavaRedcapException.class, () -> {
+        JavaREDCapException exception = assertThrows(JavaREDCapException.class, () -> {
             redCap.getProject(null);
         });
         
@@ -317,7 +318,7 @@ public class RedCapTest
     }
     
     @Test
-    public void testExportRedcapVersion() throws JavaRedcapException {
+    public void testExportRedcapVersion() throws JavaREDCapException {
     	String testVersion = "11.4.4";
 
     	Mockito.when(mockConnection.call(any())).thenReturn(testVersion);

@@ -55,21 +55,30 @@ public interface ErrorHandlerInterface extends Cloneable {
 
 	/** An error with the HTTP communications. */
 	public static final int COMMUNICATION_ERROR      = 14;
+
 	/**
-	 * Throw an exception for the specified values.
+	 * Constructs and throws an exception for the specified values.
 	 * 
 	 * @param message Message describing the error that occurred.
 	 * @param code The error code.
 	 * 
-	 * @throws JavaRedcapException 
+	 * @throws JavaREDCapException An exception representing the values. 
 	 */
-	public void throwException(String message, int code) throws JavaRedcapException;
+	public void throwException(String message, int code) throws JavaREDCapException;
 
-
-	public void throwException(String message, int code, Throwable previousException) throws JavaRedcapException;
+	/**
+	 * Constructs and throws an exception for the specified values.
+	 * 
+	 * @param message Message describing the error that occurred.
+	 * @param code The error code.
+	 * @param previousException A previous exception that is likely the reason this exception is being thrown. May be null.
+	 * 
+	 * @throws JavaREDCapException An exception representing the values. 
+	 */
+	public void throwException(String message, int code, Throwable previousException) throws JavaREDCapException;
 	
 	/**
-	 * Throw an exception for the specified values.
+	 * Constructs and throws an exception for the specified values.
 	 * 
 	 * @param message Message describing the error that occurred.
 	 * @param code The error code.
@@ -82,9 +91,14 @@ public interface ErrorHandlerInterface extends Cloneable {
 	 * @param previousException The previous exception that occurred that
 	 *     		caused this exception, if any.
 	 *     
-	 * @throws JavaRedcapException 
+	 * @throws JavaREDCapException An exception representing the values. 
 	 */
-	public void throwException(String message, int code, int connectionErrorNumber, int httpStatusCode, Throwable previousException) throws JavaRedcapException;
+	public void throwException(String message, int code, int connectionErrorNumber, int httpStatusCode, Throwable previousException) throws JavaREDCapException;
 
+    /**
+     * Create a copy of the object
+     * 
+     * @return A cloned copy of the connection object. 
+     */
 	public Object clone();
 }
