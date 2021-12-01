@@ -3,7 +3,7 @@
   <groupId>edu.utah.hsir</groupId>
   <artifactId>java-redcap</artifactId>
   <packaging>jar</packaging>
-  <version>1.0.3</version>
+  <version>1.0.4-SNAPSHOT</version>
   <name>java-redcap</name>
   <url>https://uofuhealth.utah.edu/hsir/</url>
   
@@ -35,7 +35,7 @@
 
   <scm>
     <developerConnection>scm:git:https://github.com/BlairCooper/${project.artifactId}.git</developerConnection>
-    <tag>java-redcap-1.0.3</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <dependencies>
