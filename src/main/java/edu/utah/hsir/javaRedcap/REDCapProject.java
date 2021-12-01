@@ -41,7 +41,7 @@ import edu.utah.hsir.javaRedcap.enums.REDCapApiType;
  * REDCap project class used to retrieve data from, and modify, REDCap projects.
  * 
  * Most methods in the class return either a String or a List of Maps of
- * String to Object pairs (List<Map<String, Object>>). A string is returned with
+ * String to Object pairs (List&lt;Map&lt;String, Object&gt;&gt;). A string is returned with
  * the method has been called specifying a particular data format (e.g. JSON or
  * XML). When method is called that does not specify a format a List of records
  * or rows is returned where each entry in the list is a Map of field names to
@@ -445,10 +445,10 @@ public class REDCapProject
      * <pre>
      * <code class="java">
      * // export information about all events
-     * List&lt;Map&lt;String, Object&gt;&gt; eventInfo = project->exportEvents();
+     * List&lt;Map&lt;String, Object&gt;&gt; eventInfo = project.exportEvents();
      *
      * // export events in XML format for arms 1 and 2.
-     * List&lt;Map&lt;String, Object&gt;&gt; eventInfo = project->exportEvents(RedCapApiformat.XML, new HashSet<>(Arrays.asList([1, 2])));
+     * List&lt;Map&lt;String, Object&gt;&gt; eventInfo = project.exportEvents(RedCapApiformat.XML, new HashSet&lt;&gt;(Arrays.asList([1, 2])));
      * </code>
      * </pre>
      *
@@ -1595,7 +1595,7 @@ public class REDCapProject
      * <code class="java">
      * ...
      * # Set the project to be longitudinal and enable surveys
-     * projectInfo = ['is_longitudinal' => 1, 'surveys_enabled' => 1];
+     * projectInfo = ['is_longitudinal' : 1, 'surveys_enabled' : 1];
      * project.importProjectInfo(projectInfo);
      * ...
      * </code>
@@ -3288,6 +3288,8 @@ public class REDCapProject
      *
      * @param result A result returned from the REDCap API, which should be
      * 		for a non-export method.
+     * 
+     * @throws JavaREDCapException Thrown if an error occurs.
      */
     protected void checkForRedcapError(String result) throws JavaREDCapException
     {
@@ -3314,6 +3316,8 @@ public class REDCapProject
      *
      * @param result A result returned from the REDCap API, which should be
      * 		for a non-export method.
+     * 
+     * @throws JavaREDCapException Thrown if an error occurs
      */
     protected void processNonExportResult(String result) throws JavaREDCapException
     {
@@ -3324,6 +3328,8 @@ public class REDCapProject
      * Processes an export result from the REDCap API.
      *
      * @param result The response from REDCap
+     *
+     * @return The response from the REDCap server 
      * 
      * @throws JavaREDCapException Thrown if the response contains a error from REDCap.
      */

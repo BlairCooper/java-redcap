@@ -42,7 +42,7 @@ public enum REDCapApiContent
 	RECORD("record"),
 	/** A request related to Reports */
 	REPORT("report"),
-	/** A request related to Repeating Forms & Events */
+	/** A request related to Repeating Forms &amp; Events */
 	REPEATING_FORMS_EVENTS("repeatingFormsEvents"),
 	/** A request related to Survey Links */
 	SURVEY_LINK("surveyLink"),
