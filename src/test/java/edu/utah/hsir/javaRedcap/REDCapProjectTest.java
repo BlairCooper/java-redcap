@@ -11,6 +11,7 @@ package edu.utah.hsir.javaRedcap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
@@ -32,6 +33,8 @@ import org.mockito.Mockito;
 import edu.utah.hsir.javaRedcap.enums.REDCapApiContent;
 import edu.utah.hsir.javaRedcap.enums.REDCapApiFormat;
 import edu.utah.hsir.javaRedcap.enums.REDCapApiParameter;
+import edu.utah.hsir.javaRedcap.enums.REDCapApiRawOrLabel;
+import edu.utah.hsir.javaRedcap.enums.REDCapApiType;
 
 @SuppressWarnings("javadoc")
 public class REDCapProjectTest
@@ -117,10 +120,24 @@ public class REDCapProjectTest
     @Test
     public void testCtor_withSimpleCtor() throws JavaREDCapException
     {
-    	REDCapProject project = new REDCapProject(apiUrl, "12345678901234567890123456789012");
+    	REDCapProject project = new REDCapProject(apiUrl, apiToken);
     	
     	assertNotNull(project.getErrorHandler());
     	assertNotNull(project.getConnection());
+    	
+    	assertEquals(apiToken, project.getApiToken());
+    	assertEquals(apiUrl, project.getConnection().getUrl());
+    }
+
+    @Test
+    public void testCtor_withConnection() throws JavaREDCapException {
+    	REDCapProject project = new REDCapProject(apiToken, mockConnection);
+    	
+    	assertNotNull(project.getErrorHandler());
+    	assertNotNull(project.getConnection());
+
+    	assertEquals(apiToken, project.getApiToken());
+    	assertEquals(mockConnection, project.getConnection());
     }
 
     @Test
@@ -192,16 +209,16 @@ public class REDCapProjectTest
 		Mockito.verify(mockConnection, times(1)).call(argument.capture());
 		
         // Validate  the call parameters
-		REDCapApiRequest params = argument.getValue();
+		REDCapApiRequest req = argument.getValue();
 		
-		assertEquals(apiToken, params.paramMap.get(REDCapApiParameter.TOKEN));
-		assertEquals(REDCapApiContent.ARM, params.paramMap.get(REDCapApiParameter.CONTENT));
-		assertEquals(REDCapApiFormat.JSON, params.paramMap.get(REDCapApiParameter.FORMAT));
-		assertEquals(REDCapApiFormat.JSON, params.paramMap.get(REDCapApiParameter.RETURN_FORMAT));
-		assertFalse(params.paramMap.keySet().contains(REDCapApiParameter.ARMS));
+		assertEquals(apiToken, req.paramMap.get(REDCapApiParameter.TOKEN));
+		assertEquals(REDCapApiContent.ARM, req.paramMap.get(REDCapApiParameter.CONTENT));
+		assertEquals(REDCapApiFormat.JSON, req.paramMap.get(REDCapApiParameter.FORMAT));
+		assertEquals(REDCapApiFormat.JSON, req.paramMap.get(REDCapApiParameter.RETURN_FORMAT));
+		assertFalse(req.paramMap.keySet().contains(REDCapApiParameter.ARMS));
 
 		// There should only be four parameters
-		assertEquals(4, params.paramMap.keySet().size());
+		assertEquals(4, req.paramMap.keySet().size());
 
 		// Validate the response
         assertNotNull(arms);
@@ -242,16 +259,16 @@ public class REDCapProjectTest
 		Mockito.verify(mockConnection, times(1)).call(argument.capture());
 		
         // Validate  the call parameters
-		REDCapApiRequest params = argument.getValue();
+		REDCapApiRequest req = argument.getValue();
 		
-		assertEquals(apiToken, params.paramMap.get(REDCapApiParameter.TOKEN));
-		assertEquals(REDCapApiContent.ARM, params.paramMap.get(REDCapApiParameter.CONTENT));
-		assertEquals(REDCapApiFormat.JSON, params.paramMap.get(REDCapApiParameter.FORMAT));
-		assertEquals(REDCapApiFormat.JSON, params.paramMap.get(REDCapApiParameter.RETURN_FORMAT));
-		assertEquals(testSet, params.paramMap.get(REDCapApiParameter.ARMS));
+		assertEquals(apiToken, req.paramMap.get(REDCapApiParameter.TOKEN));
+		assertEquals(REDCapApiContent.ARM, req.paramMap.get(REDCapApiParameter.CONTENT));
+		assertEquals(REDCapApiFormat.JSON, req.paramMap.get(REDCapApiParameter.FORMAT));
+		assertEquals(REDCapApiFormat.JSON, req.paramMap.get(REDCapApiParameter.RETURN_FORMAT));
+		assertEquals(testSet, req.paramMap.get(REDCapApiParameter.ARMS));
 
 		// There should only be five parameters
-		assertEquals(5, params.paramMap.keySet().size());
+		assertEquals(5, req.paramMap.keySet().size());
 
 		// Validate the response
         assertNotNull(arms);
@@ -274,5 +291,87 @@ public class REDCapProjectTest
     				break;
         	}
         }
+    }
+    
+    @Test
+    public void testExportRecords_defaults() throws JavaREDCapException {
+    	String expectedResponse = "[{\"recordid\":1,\"name\":\"Fred Flintstone\"},{\"recordid\":2,\"name\":\"Wilma Flintstone\"}]";
+
+    	Mockito.when(mockConnection.call(any())).thenReturn(expectedResponse);
+    	ArgumentCaptor<REDCapApiRequest> argument = ArgumentCaptor.forClass(REDCapApiRequest.class);
+
+    	String resp =
+    			redCapProject.exportRecords(
+    					null,		// REDCapApiFormat format
+    					null,		// REDCapApiType type
+    					null,		// Set<String> recordIds
+    					null,		// Set<String> fields
+    					null,		// Set<String> forms
+    					null,		// Set<String> events
+    					null, 		// String filterLogic
+    					null,		// REDCapApiRawOrLabel rawOrLabel
+    					null,		// REDCapApiRawOrLabel rawOrLabelHeaders
+    					false,		// boolean exportCheckboxLabel
+    					false,		// boolean exportSurveyFields
+    					false,		// boolean exportDataAccessGroups
+    					null,		// String dateRangeBegin
+    					null,		// String dateRangeEnd
+    					null,		// REDCapApiCsvDelimiter csvDelimiter,
+    					null		// REDCapApiDecimalCharacter decimalCharacter
+    					);
+
+		Mockito.verify(mockConnection, times(1)).call(argument.capture());
+		
+	    // Validate  the call parameters
+		REDCapApiRequest req = argument.getValue();
+
+		// implied parameters - automatically added
+		assertEquals(apiToken, req.paramMap.get(REDCapApiParameter.TOKEN));
+		assertEquals(REDCapApiFormat.JSON, req.paramMap.get(REDCapApiParameter.RETURN_FORMAT));
+		assertEquals(REDCapApiContent.RECORD, req.paramMap.get(REDCapApiParameter.CONTENT));
+
+		// explicit parameters - from method call
+		assertEquals(REDCapApiFormat.JSON, req.paramMap.get(REDCapApiParameter.FORMAT));
+		assertEquals(REDCapApiType.FLAT, req.paramMap.get(REDCapApiParameter.TYPE));
+		assertNull(req.paramMap.get(REDCapApiParameter.RECORDS));
+		assertNull(req.paramMap.get(REDCapApiParameter.FORMS));
+		assertNull(req.paramMap.get(REDCapApiParameter.EVENTS));
+		assertNull(req.paramMap.get(REDCapApiParameter.FILTER_LOGIC));
+		assertEquals(REDCapApiRawOrLabel.RAW, req.paramMap.get(REDCapApiParameter.RAW_OR_LABEL));
+		assertEquals(REDCapApiRawOrLabel.RAW, req.paramMap.get(REDCapApiParameter.RAW_OR_LABEL_HEADERS));
+		assertFalse((boolean)req.paramMap.get(REDCapApiParameter.EXPORT_CHECKBOX_LABEL));
+		assertFalse((boolean)req.paramMap.get(REDCapApiParameter.EXPORT_SURVEY_FIELDS));
+		assertFalse((boolean)req.paramMap.get(REDCapApiParameter.EXPORT_DATA_ACCESS_GROUPS));
+		assertNull(req.paramMap.get(REDCapApiParameter.DATE_RANGE_BEGIN));
+		assertNull(req.paramMap.get(REDCapApiParameter.DATE_RANGE_END));
+		assertNull(req.paramMap.get(REDCapApiParameter.CSV_DELIMITER));
+		assertNull(req.paramMap.get(REDCapApiParameter.DECIMAL_CHARACTER));
+
+
+		assertEquals(expectedResponse, resp);
+/*		
+	
+		// Validate the response
+	    assertNotNull(arms);
+	    assertEquals(1, arms.size());
+	    
+	    for (Map<String, Object> entry : arms) {
+	    	assertEquals(2, entry.keySet().size());
+	    	Integer armNum = (Integer) entry.get("arm_num");
+	    	String armName = (String) entry.get("name");
+	    	
+	    	assertNotNull(armNum);
+	    	assertNotNull(armName);
+	    	
+	    	switch(armNum) {
+	    		case 2:
+	    			assertEquals("Drug B", entry.get("name"));
+	    			break;
+				default:
+					fail("Unexpected arm name");
+					break;
+	    	}
+	    }
+*/	    
     }
 }

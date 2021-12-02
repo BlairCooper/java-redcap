@@ -969,10 +969,12 @@ public class REDCapApiRequest
         	case END_TIME:
         	case DATE_RANGE_BEGIN:
         	case DATE_RANGE_END:
-        		String dateRange = checkDateRangeArgument((String)value);
-
-        		// checkDateRangeArgument will only return the date if it's valid
-    			paramMap.put(param, dateRange);
+        		if (null != value) {
+	        		String dateRange = checkDateRangeArgument((String)value);
+	
+	        		// checkDateRangeArgument will only return the date if it's valid
+	    			paramMap.put(param, dateRange);
+        		}
         		break;
 
         	case DECIMAL_CHARACTER:

@@ -62,7 +62,7 @@ public class REDCapProject
 
 
     /**
-     * Creates a REDCapProject object for the specifed project.
+     * Creates a REDCapProject object for the specified project.
      *
      * Example Usage:
      * <pre>
@@ -114,7 +114,7 @@ public class REDCapProject
     }
 
     /**
-     * Creates a REDCapProject object for the specifed project.
+     * Creates a REDCapProject object for the specified project.
      *
      * Example Usage:
      * <pre>
@@ -138,6 +138,38 @@ public class REDCapProject
         this.connection = new REDCapApiConnection(apiUrl, false, null);
     }
     
+    /**
+     * Creates a REDCapProject instance using the provided token and connection.
+     *
+     * Example Usage:
+     * <pre>
+     * <code class="java">
+     * String apiUrl = 'https://redcap.someplace.edu/api/'; # replace with your API URL
+     * String apiToken = '11111111112222222222333333333344'; # replace with your API token
+     *
+     * REDCapApiConnection conn = new REDCapApiConnection(apiUrl, false, null);
+     *
+     * REDCapProject project = new REDCapProject(apiUrl, conn);
+     * </code>
+     * </pre>
+     *
+     * @param apiToken the API token for this project.
+     * @param connection The connection used by the project.
+     *
+     * @throws JavaREDCapException if any of the arguments are invalid
+     */
+    public REDCapProject (String apiToken, REDCapApiConnectionInterface connection) throws JavaREDCapException {
+    	setErrorHandler(null);
+
+        this.apiToken = REDCap.processApiTokenArgument(apiToken, 32, this.errorHandler);
+
+        if (null == connection) {
+        	errorHandler.throwException("No connection provided", ErrorHandlerInterface.INVALID_ARGUMENT);
+        }
+        
+        this.connection = connection;
+    }
+
 
     /**
      * Exports all the numbers and names of the arms in the project.
@@ -2007,18 +2039,16 @@ public class REDCapProject
         Set<String> forms,
         Set<String> events,
         String filterLogic,
-        REDCapApiRawOrLabel rawOrLabel, // = 'raw',
-        REDCapApiRawOrLabel rawOrLabelHeaders, // = 'raw',
+        REDCapApiRawOrLabel rawOrLabel,
+        REDCapApiRawOrLabel rawOrLabelHeaders,
         boolean exportCheckboxLabel,
         boolean exportSurveyFields,
         boolean exportDataAccessGroups,
         String dateRangeBegin,
         String dateRangeEnd,
-        REDCapApiCsvDelimiter csvDelimiter, // = ',',
+        REDCapApiCsvDelimiter csvDelimiter,
         REDCapApiDecimalCharacter decimalCharacter
     ) throws JavaREDCapException {
-    	if (null == csvDelimiter) {csvDelimiter = REDCapApiCsvDelimiter.COMMA; }
-
     	REDCapApiRequest data = new REDCapApiRequest(apiToken, REDCapApiContent.RECORD, errorHandler);
 
     	data.addFormat(REDCapApiFormat.ODM);

@@ -52,7 +52,7 @@ import edu.utah.hsir.javaRedcap.enums.REDCapApiReturnContent;
 import edu.utah.hsir.javaRedcap.enums.REDCapApiType;
 
 @SuppressWarnings("javadoc")
-public class REDCapApiParamsTest {
+public class REDCapApiRequestTest {
 	protected static final String TEST_TOKEN = "12345678901234567890123456789012";
 
 	protected Map<REDCapApiParameter, Object> testDataMap = new HashMap<>();
@@ -433,15 +433,10 @@ public class REDCapApiParamsTest {
 	}
 	
 	@Test
-	public void testSetBeginTime_nullValue() {
+	public void testSetBeginTime_nullValue() throws JavaREDCapException {
 		assertNull(testParams.paramMap.get(REDCapApiParameter.BEGIN_TIME));
 
-		JavaREDCapException exception = assertThrows(JavaREDCapException.class, () -> {
-			testParams.setBeginTime(null);
-    	});
-    	
-    	assertEquals(ErrorHandlerInterface.INVALID_ARGUMENT, exception.getCode());
-    	MatcherAssert.assertThat(exception.getMessage(), CoreMatchers.containsStringIgnoringCase("date"));
+		testParams.setBeginTime(null);
 
 		assertNull(testParams.paramMap.get(REDCapApiParameter.BEGIN_TIME));
 	}
@@ -472,16 +467,11 @@ public class REDCapApiParamsTest {
 	}
 	
 	@Test
-	public void testSetEndTime_nullValue() {
+	public void testSetEndTime_nullValue() throws JavaREDCapException {
 		assertNull(testParams.paramMap.get(REDCapApiParameter.END_TIME));
 
-		JavaREDCapException exception = assertThrows(JavaREDCapException.class, () -> {
-			testParams.setEndTime(null);
-    	});
+		testParams.setEndTime(null);
     	
-    	assertEquals(ErrorHandlerInterface.INVALID_ARGUMENT, exception.getCode());
-    	MatcherAssert.assertThat(exception.getMessage(), CoreMatchers.containsStringIgnoringCase("date"));
-
 		assertNull(testParams.paramMap.get(REDCapApiParameter.END_TIME));
 	}
 	
@@ -732,15 +722,10 @@ public class REDCapApiParamsTest {
 	}
 
 	@Test
-	public void testSetDateRangeBegin_nullValue() {
+	public void testSetDateRangeBegin_nullValue() throws JavaREDCapException {
 		assertNull(testParams.paramMap.get(REDCapApiParameter.DATE_RANGE_BEGIN));
 		
-		JavaREDCapException exception = assertThrows(JavaREDCapException.class, () -> {
-			testParams.setDateRangeBegin(null);
-    	});
-    	
-    	assertEquals(ErrorHandlerInterface.INVALID_ARGUMENT, exception.getCode());
-    	MatcherAssert.assertThat(exception.getMessage(), CoreMatchers.containsStringIgnoringCase("blank"));
+		testParams.setDateRangeBegin(null);
 
     	assertNull(testParams.paramMap.get(REDCapApiParameter.DATE_RANGE_BEGIN));
 	}
@@ -786,15 +771,10 @@ public class REDCapApiParamsTest {
 	}
 
 	@Test
-	public void testSetDateRangeEnd_nullValue() {
+	public void testSetDateRangeEnd_nullValue() throws JavaREDCapException {
 		assertNull(testParams.paramMap.get(REDCapApiParameter.DATE_RANGE_END));
 		
-		JavaREDCapException exception = assertThrows(JavaREDCapException.class, () -> {
-			testParams.setDateRangeEnd(null);
-    	});
-    	
-    	assertEquals(ErrorHandlerInterface.INVALID_ARGUMENT, exception.getCode());
-    	MatcherAssert.assertThat(exception.getMessage(), CoreMatchers.containsStringIgnoringCase("blank"));
+		testParams.setDateRangeEnd(null);
 
     	assertNull(testParams.paramMap.get(REDCapApiParameter.DATE_RANGE_END));
 	}
