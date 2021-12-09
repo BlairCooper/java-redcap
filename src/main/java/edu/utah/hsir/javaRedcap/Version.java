@@ -8,6 +8,10 @@
 
 package edu.utah.hsir.javaRedcap;
 
+/**
+ * Static container for the project version number
+ */
 public class Version {
+	/** Current project release number */
 	public static final String RELEASE_NUMBER = "1.2.0";
 }
