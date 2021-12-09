@@ -146,5 +146,5 @@ public interface REDCapApiConnectionInterface extends Cloneable
      * 
      * @return A cloned copy of the connection object. 
      */
-    public Object clone();
+    public REDCapApiConnectionInterface clone();
 }

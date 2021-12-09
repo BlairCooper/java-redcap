@@ -34,7 +34,7 @@ public class ErrorHandler
 	}
 	
 	@Override
-	public Object clone() {
+	public ErrorHandlerInterface clone() {
 		ErrorHandler clone = null;
 
 		try {

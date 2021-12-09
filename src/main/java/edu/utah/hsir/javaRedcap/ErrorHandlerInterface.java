@@ -98,7 +98,7 @@ public interface ErrorHandlerInterface extends Cloneable {
     /**
      * Create a copy of the object
      * 
-     * @return A cloned copy of the connection object. 
+     * @return A cloned copy of the error handler object.
      */
-	public Object clone();
+	public ErrorHandlerInterface clone();
 }

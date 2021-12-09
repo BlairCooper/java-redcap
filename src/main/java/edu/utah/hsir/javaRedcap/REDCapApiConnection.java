@@ -293,7 +293,7 @@ public class REDCapApiConnection implements REDCapApiConnectionInterface
 	}
 
 	@Override
-	public Object clone() {
+	public REDCapApiConnectionInterface clone() {
 		REDCapApiConnection clone = null;
 
 		try {

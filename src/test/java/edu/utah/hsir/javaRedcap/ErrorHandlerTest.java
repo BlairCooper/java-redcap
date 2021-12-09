@@ -86,7 +86,7 @@ public class ErrorHandlerTest
 	}
 	
 	@Test
-	public void testClone()
+	public void testClone() throws CloneNotSupportedException
 	{
 		ErrorHandler orgHandler = new ErrorHandler();
 		Object cloneHandler = orgHandler.clone();
@@ -94,4 +94,42 @@ public class ErrorHandlerTest
 		assertNotNull(cloneHandler);
 		assertTrue(cloneHandler instanceof ErrorHandler);
 	}
+	
+	@Test
+	public void testCustomImpl() {
+		/**
+		 * This test is a bit of a noop. It's purpose to to ensure that a custom
+		 * ErrorHandler can be created without a compile error.
+		 */
+		ErrorHandlerInterface handler = new ErrorHandlerInterface() {
+			@Override
+			public void throwException(String message, int code) throws JavaREDCapException {
+			}
+
+			@Override
+			public void throwException(String message, int code, Throwable previousException)
+					throws JavaREDCapException {
+			}
+
+			@Override
+			public void throwException(String message, int code, int connectionErrorNumber, int httpStatusCode,
+					Throwable previousException) throws JavaREDCapException {
+			}
+			
+			@Override
+			public ErrorHandlerInterface clone() {
+				ErrorHandlerInterface clone = null;
+
+				try {
+					clone = (ErrorHandlerInterface) super.clone();
+				} catch (CloneNotSupportedException e) {
+				}
+				
+				return clone;
+			}
+		};
+		
+		assertNotNull(handler);
+	}
+
 }
