@@ -8,6 +8,7 @@
 
 package edu.utah.hsir.javaRedcap;
 
+import java.net.URI;
 import java.util.Map;
 
 import edu.utah.hsir.javaRedcap.enums.REDCapApiParameter;
@@ -63,9 +64,16 @@ public interface REDCapApiConnectionInterface extends Cloneable
     /**
      * Gets the URL of the connection.
      *
-     * @return Te URL of the connection.
+     * @return The URL of the connection.
      */
     public String getUrl();
+    
+    /**
+     * Gets the URI of the connection.
+     *
+     * @return The URI of the connection.
+     */
+    public URI getUri();
     
     /**
      * Sets the URL of the connection.
@@ -75,6 +83,15 @@ public interface REDCapApiConnectionInterface extends Cloneable
      * @throws JavaREDCapException Thrown if there is an issue with the URL. 
      */
     public void setUrl(String url) throws JavaREDCapException;
+    
+    /**
+     * Sets the URI of the connection.
+     *
+     * @param uri The URI of the connection.
+     * 
+     * @throws JavaREDCapException Thrown if there is an issue with the URL. 
+     */
+    public void setUri(URI uri) throws JavaREDCapException;
     
     /**
      * Gets the status of SSL verification for the connection.

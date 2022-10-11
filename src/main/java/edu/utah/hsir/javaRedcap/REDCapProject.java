@@ -1874,10 +1874,8 @@ public class REDCapProject
      *       <li> null - numbers will be exported using the fields' native decimal format</li>
      *     </ul>
      *
-     * @return A string with the data in the format specified. The format
-     *     of the records depends on the 'type'parameter (see above). For other
-     *     formats, a string is returned that contains the records in the
-     *     specified format.
+     * @return A List of Maps of String to Object, which is a list of the top level JSON objects
+     *     keyed by their field name.
      *     
      * @throws JavaREDCapException Thrown if an error occurs 
      */

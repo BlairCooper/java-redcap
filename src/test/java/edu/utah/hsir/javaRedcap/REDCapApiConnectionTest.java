@@ -20,6 +20,7 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -56,7 +57,7 @@ public class REDCapApiConnectionTest
 	}
 
 	@Test
-    public void testConnectionCreation() throws IOException
+    public void testConnectionCreation_URL() throws IOException
     {
 		boolean sslVerify = true;
         ErrorHandler errorHandler = new ErrorHandler();
@@ -76,7 +77,30 @@ public class REDCapApiConnectionTest
 		} catch (JavaREDCapException e) {
 			fail(e.getMessage());
 		}
-        
+    }
+
+	@Test
+    public void testConnectionCreation_URI() throws IOException
+    {
+		boolean sslVerify = true;
+		URI testUri = URI.create(TEST_URL);
+        ErrorHandler errorHandler = new ErrorHandler();
+
+		try {
+	        REDCapApiConnection connection = new REDCapApiConnection(
+			    testUri,
+			    sslVerify,
+			    testCACertificateFile.getAbsolutePath(),
+			    errorHandler
+			);
+
+			assertEquals("URI check failed", testUri, connection.getUri());
+	        assertEquals("SSL Verify check failed", sslVerify, connection.getSslVerify());
+	        assertEquals("CA certificate file check failed", testCACertificateFile.getAbsolutePath(), connection.getCaCertificateFile());
+	        assertSame("Error handler check failed", errorHandler, connection.getErrorHandler());
+		} catch (JavaREDCapException e) {
+			fail(e.getMessage());
+		}
     }
 
 	@Test
@@ -192,6 +216,28 @@ public class REDCapApiConnectionTest
 		});
 		
 		MatcherAssert.assertThat(exception.getMessage(), CoreMatchers.containsString("URL"));
+		assertEquals(ErrorHandlerInterface.INVALID_URL, exception.getCode());
+    }
+
+
+	@Test
+    public void testSetUri() throws JavaREDCapException
+    {
+		// Need to use a local connection to bypass mock web server
+		REDCapApiConnection localConn = new REDCapApiConnection(TEST_URL, false, (String)null);
+
+		assertEquals("Initial URL state unexpected", TEST_URL, localConn.getUrl());
+        
+        URI newUri = URI.create("https://redcap.somewhere.edu/api/");
+        localConn.setUri(newUri);
+        
+        assertEquals("Url set/get failure", newUri, localConn.getUri());
+        
+        JavaREDCapException exception = assertThrows(JavaREDCapException.class, () -> {
+			localConn.setUri(null);
+		});
+		
+		MatcherAssert.assertThat(exception.getMessage(), CoreMatchers.containsString("URI"));
 		assertEquals(ErrorHandlerInterface.INVALID_URL, exception.getCode());
     }
 

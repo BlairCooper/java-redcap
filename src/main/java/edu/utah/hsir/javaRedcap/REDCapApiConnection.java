@@ -67,6 +67,24 @@ public class REDCapApiConnection implements REDCapApiConnectionInterface
     /**
      * Construct an object used for communicating with the REDCap server.
      *  
+     * @param uri The REDCap server URI.
+     * @param sslVerify If true, the SSL connection with the server will be
+     * 		verified.
+     * @param caCertificateFile The CA certificate file used to verify the
+     * 		connection with the server.
+     * 
+     * @throws JavaREDCapException Thrown if an error occurs and the Error
+     * 		Handler being used throws the exception.
+     */
+    public REDCapApiConnection (URI uri, boolean sslVerify, String caCertificateFile)
+        throws JavaREDCapException
+    {
+    	this(uri, sslVerify, caCertificateFile, null);
+    }
+    
+    /**
+     * Construct an object used for communicating with the REDCap server.
+     *  
      * @param url The REDCap server URL.
      * @param sslVerify If true, the SSL connection with the server will be
      * 		verified.
@@ -82,6 +100,29 @@ public class REDCapApiConnection implements REDCapApiConnectionInterface
     	throws JavaREDCapException
     {
     	setUrl(url);
+    	setSslVerify(sslVerify);
+    	setCaCertificateFile(caCertificateFile);
+    	setErrorHandler(errorHandler);
+    }
+
+    /**
+     * Construct an object used for communicating with the REDCap server.
+     *  
+     * @param uri The REDCap server URI.
+     * @param sslVerify If true, the SSL connection with the server will be
+     * 		verified.
+     * @param caCertificateFile The CA certificate file used to verify the
+     * 		connection with the server.
+     * @param errorHandler An implementation of ErrorHandlerInterface to use
+     * 		in handling errors. If null the default error handler will be used.
+     *
+     * @throws JavaREDCapException Thrown if an error occurs and the Error
+     * 		Handler being used throws the exception.
+     */
+    public REDCapApiConnection (URI uri, boolean sslVerify, String caCertificateFile, ErrorHandlerInterface errorHandler)
+    	throws JavaREDCapException
+    {
+    	setUri(uri);
     	setSslVerify(sslVerify);
     	setCaCertificateFile(caCertificateFile);
     	setErrorHandler(errorHandler);
@@ -199,6 +240,11 @@ public class REDCapApiConnection implements REDCapApiConnectionInterface
 	}
 
 	@Override
+	public URI getUri() {
+		return serverUri;
+	}
+
+	@Override
 	public void setUrl(String url) throws JavaREDCapException {
 		if (null != url && url.trim().length() != 0) {
 			serverUri = URI.create(url);
@@ -208,6 +254,16 @@ public class REDCapApiConnection implements REDCapApiConnectionInterface
 		}
 	}
 
+	@Override
+	public void setUri(URI uri) throws JavaREDCapException {
+		if (null != uri) {
+			serverUri = uri;
+		}
+		else {
+			throw new JavaREDCapException("Null REDCap URI provided", ErrorHandlerInterface.INVALID_URL);
+		}
+	}
+	
 	@Override
 	public boolean getSslVerify() {
 		return sslVerify;
@@ -320,5 +376,4 @@ public class REDCapApiConnection implements REDCapApiConnectionInterface
 		
 		return httpClient;
 	}
-
 }
