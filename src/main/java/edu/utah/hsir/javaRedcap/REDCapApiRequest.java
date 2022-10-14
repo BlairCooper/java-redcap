@@ -1379,6 +1379,14 @@ public class REDCapApiRequest
 
                 builder.append(setBuilder);
             }
+            else if (value instanceof Boolean || value instanceof Integer) {
+                builder.append(URLEncoder.encode(field, StandardCharsets.UTF_8));
+                builder.append("=");
+                builder.append(URLEncoder.encode((String)value.toString(), StandardCharsets.UTF_8));
+            }
+            else {
+            	throw new java.lang.IllegalArgumentException("Unexpected REDCap parameter type: " + value.getClass());
+            }
         }
 
         return builder.toString();

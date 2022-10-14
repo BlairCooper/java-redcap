@@ -1915,6 +1915,54 @@ public class REDCapApiRequestTest {
 		}
 	}
 	
+	@Test
+	public void testToFormData_withBooleanTrue() throws JavaREDCapException {
+		boolean exportDags = true;
+
+		testParams.setExportDataAccessGroups(exportDags);
+
+		String data = testParams.toWwwFormUrlencoded();
+
+		Map<String, Object> dataMap = formStrToMap(data);
+
+		String fieldKey = REDCapApiParameter.EXPORT_DATA_ACCESS_GROUPS.getLabel();
+
+		assertTrue(dataMap.keySet().contains(fieldKey));
+		assertEquals(Boolean.valueOf(exportDags).toString(), dataMap.get(fieldKey));
+	}
+
+	@Test
+	public void testToFormData_withBooleanFalse() throws JavaREDCapException {
+		Boolean exportCheckboxLabel = false;
+
+		testParams.setExportCheckboxLabel(exportCheckboxLabel);
+
+		String data = testParams.toWwwFormUrlencoded();
+
+		Map<String, Object> dataMap = formStrToMap(data);
+
+		String fieldKey = REDCapApiParameter.EXPORT_CHECKBOX_LABEL.getLabel();
+
+		assertTrue(dataMap.keySet().contains(fieldKey));
+		assertEquals(exportCheckboxLabel.toString(), dataMap.get(fieldKey));
+	}
+
+	@Test
+	public void testToFormData_withInteger() throws JavaREDCapException {
+		Integer repeatInstance = 25;
+
+		testParams.setRepeatInstance(repeatInstance);
+
+		String data = testParams.toWwwFormUrlencoded();
+
+		Map<String, Object> dataMap = formStrToMap(data);
+
+		String fieldKey = REDCapApiParameter.REPEAT_INSTANCE.getLabel();
+
+		assertTrue(dataMap.keySet().contains(fieldKey));
+		assertEquals(repeatInstance.toString(), dataMap.get(fieldKey));
+	}
+
 	@SuppressWarnings("unchecked")
 	private Map<String, Object> formStrToMap(String formStr) {
 		Map<String, Object> map = new HashMap<String, Object>();
