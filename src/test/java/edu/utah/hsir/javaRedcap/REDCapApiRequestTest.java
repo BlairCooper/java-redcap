@@ -110,6 +110,15 @@ public class REDCapApiRequestTest {
 	}	
 
 	@Test
+	public void testCtor_baseMap_NullValue() throws JavaREDCapException {
+		testDataMap.put(REDCapApiParameter.RECORDS, null);
+
+		REDCapApiRequest data = new REDCapApiRequest(testDataMap);
+		
+		assertNotNull(data);
+	}	
+
+	@Test
 	public void testCtor_baseMap() throws JavaREDCapException {
 		REDCapApiRequest data = new REDCapApiRequest(testDataMap);
 		
@@ -1961,6 +1970,22 @@ public class REDCapApiRequestTest {
 
 		assertTrue(dataMap.keySet().contains(fieldKey));
 		assertEquals(repeatInstance.toString(), dataMap.get(fieldKey));
+	}
+
+	@Test
+	public void testToFormData_withNullValue() throws JavaREDCapException {
+		Map<REDCapApiParameter, Object> map = new HashMap<>(testDataMap);
+		map.put(REDCapApiParameter.RECORDS, null);
+
+		REDCapApiRequest params = new REDCapApiRequest(map);
+		
+		String data = params.toWwwFormUrlencoded();
+
+		Map<String, Object> dataMap = formStrToMap(data);
+
+		String fieldKey = REDCapApiParameter.RECORDS.getLabel();
+
+		assertFalse(dataMap.keySet().contains(fieldKey));
 	}
 
 	@SuppressWarnings("unchecked")

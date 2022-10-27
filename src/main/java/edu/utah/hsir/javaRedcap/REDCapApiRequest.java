@@ -1343,49 +1343,51 @@ public class REDCapApiRequest
         StringBuilder builder = new StringBuilder();
 
         for (Entry<REDCapApiParameter, Object> entry : paramMap.entrySet()) {
-            if (builder.length() > 0) {
-                builder.append("&");
-            }
-            
             String field = entry.getKey().getLabel();
             Object value = entry.getValue();
-            
-            if (value instanceof REDCapApiEnum) {
-                builder.append(URLEncoder.encode(field, StandardCharsets.UTF_8));
-                builder.append("=");
-                builder.append(URLEncoder.encode(((REDCapApiEnum)value).getLabel(), StandardCharsets.UTF_8));
-            } else if (value instanceof String) {
-                builder.append(URLEncoder.encode(field, StandardCharsets.UTF_8));
-                builder.append("=");
-                builder.append(URLEncoder.encode((String)value, StandardCharsets.UTF_8));
-            }
-            else if (value instanceof Set<?>) {
-                StringBuilder setBuilder = new StringBuilder();
 
-                field = field + "[]";
-                for (Object obj : ((Set<?>)value)) {
-                    if (obj instanceof Integer) {
-                        obj = ((Integer)obj).toString();
-                    }
-
-                    if (setBuilder.length() > 0) {
-                        setBuilder.append("&");
-                    }
-
-                    setBuilder.append(URLEncoder.encode(field, StandardCharsets.UTF_8));
-                    setBuilder.append("=");
-                    setBuilder.append(URLEncoder.encode((String)obj, StandardCharsets.UTF_8));
+            if (null != value) {
+                if (builder.length() > 0) {
+                    builder.append("&");
                 }
-
-                builder.append(setBuilder);
-            }
-            else if (value instanceof Boolean || value instanceof Integer) {
-                builder.append(URLEncoder.encode(field, StandardCharsets.UTF_8));
-                builder.append("=");
-                builder.append(URLEncoder.encode((String)value.toString(), StandardCharsets.UTF_8));
-            }
-            else {
-            	throw new java.lang.IllegalArgumentException("Unexpected REDCap parameter type: " + value.getClass());
+                
+	            if (value instanceof REDCapApiEnum) {
+	                builder.append(URLEncoder.encode(field, StandardCharsets.UTF_8));
+	                builder.append("=");
+	                builder.append(URLEncoder.encode(((REDCapApiEnum)value).getLabel(), StandardCharsets.UTF_8));
+	            } else if (value instanceof String) {
+	                builder.append(URLEncoder.encode(field, StandardCharsets.UTF_8));
+	                builder.append("=");
+	                builder.append(URLEncoder.encode((String)value, StandardCharsets.UTF_8));
+	            }
+	            else if (value instanceof Set<?>) {
+	                StringBuilder setBuilder = new StringBuilder();
+	
+	                field = field + "[]";
+	                for (Object obj : ((Set<?>)value)) {
+	                    if (obj instanceof Integer) {
+	                        obj = ((Integer)obj).toString();
+	                    }
+	
+	                    if (setBuilder.length() > 0) {
+	                        setBuilder.append("&");
+	                    }
+	
+	                    setBuilder.append(URLEncoder.encode(field, StandardCharsets.UTF_8));
+	                    setBuilder.append("=");
+	                    setBuilder.append(URLEncoder.encode((String)obj, StandardCharsets.UTF_8));
+	                }
+	
+	                builder.append(setBuilder);
+	            }
+	            else if (value instanceof Boolean || value instanceof Integer) {
+	                builder.append(URLEncoder.encode(field, StandardCharsets.UTF_8));
+	                builder.append("=");
+	                builder.append(URLEncoder.encode((String)value.toString(), StandardCharsets.UTF_8));
+	            }
+	            else {
+	            	throw new java.lang.IllegalArgumentException("Unexpected REDCap parameter type: " + value.getClass());
+	            }
             }
         }
 
